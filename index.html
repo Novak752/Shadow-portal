@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shadow Portal — Freelancer Client Hub</title>
+<meta name="description" content="Secure freelancer portal for project delivery, file management, and payments." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%237c3aed'/><text y='.9em' font-size='72' x='12'>S</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════
+   TOKENS
+═══════════════════════════════════ */
+:root {
+  --bg:#08080f; --bg2:#0e0e1c; --bg3:#14142a; --bg4:#1a1a30;
+  --border:#232338; --border2:#2c2c48;
+  --primary:#7c3aed; --primary-d:#5b21b6; --primary-l:#a855f7;
+  --primary-glow:rgba(124,58,237,.22);
+  --accent:#06b6d4; --success:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --text:#f1f5f9; --text2:#cbd5e1; --muted:#64748b;
+  --card:#0e0e1c; --card2:#121224;
+  --brand:#7c3aed; --brand-l:#a855f7;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ═══════════════════════════════════
+   STRIPE TEST BANNER
+═══════════════════════════════════ */
+.stripe-banner{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(90deg,#f59e0b,#d97706);
+  color:#000;font-size:12px;font-weight:700;
+  text-align:center;padding:5px;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.stripe-banner .test-pill{background:rgba(0,0,0,.2);border-radius:99px;padding:2px 8px;font-size:11px;font-weight:800}
+body.has-banner{padding-top:29px}
+body.has-banner .topnav{top:29px}
+
+/* ═══════════════════════════════════
+   TOPNAV
+═══════════════════════════════════ */
+.topnav{
+  position:sticky;top:0;z-index:300;height:56px;padding:0 20px;
+  background:rgba(8,8,15,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo-wrap{display:flex;align-items:center;gap:10px;cursor:pointer}
+.logo-mark{width:32px;height:32px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,var(--brand),var(--brand-l));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#fff;transition:all .3s;overflow:hidden}
+.logo-mark img{width:100%;height:100%;object-fit:contain;display:none}
+.logo-text{font-weight:800;font-size:16px;letter-spacing:-.4px}
+.logo-text .dot{color:var(--brand-l)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-chip{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+.nav-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.plan-badge-nav{padding:3px 8px;border-radius:99px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
+.plan-badge-nav.free{background:rgba(100,116,139,.2);color:var(--muted)}
+.plan-badge-nav.pro{background:rgba(124,58,237,.2);color:var(--primary-l)}
+.plan-badge-nav.agency{background:rgba(6,182,212,.2);color:var(--accent)}
+.plan-badge-nav.superadmin{background:rgba(239,68,68,.2);color:#f87171}
+
+/* ═══════════════════════════════════
+   BUTTONS
+═══════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn-xs{padding:4px 10px;font-size:11px;border-radius:6px;gap:4px}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.btn-lg{padding:12px 28px;font-size:14px;border-radius:11px}
+.btn-full{width:100%}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-l));color:#fff;box-shadow:0 2px 14px var(--primary-glow)}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-success{background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+.btn-success:hover{filter:brightness(1.1)}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff}
+.btn-warn{background:linear-gradient(135deg,#d97706,#f59e0b);color:#000;font-weight:700}
+.btn-stripe{background:linear-gradient(135deg,#635bff,#7a73ff);color:#fff}
+.btn-stripe:hover{filter:brightness(1.08)}
+.btn-paypal{background:linear-gradient(135deg,#003087,#009cde);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+
+/* ═══════════════════════════════════
+   PAGES
+═══════════════════════════════════ */
+.page{display:none;min-height:calc(100vh - 56px)}
+.page.active{display:block}
+.hidden{display:none!important}
+
+/* ═══════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════ */
+.login-bg{
+  min-height:calc(100vh - 85px);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(ellipse 70% 50% at 80% 20%,rgba(124,58,237,.1) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 60% at 10% 90%,rgba(6,182,212,.06) 0%,transparent 60%);
+}
+.login-card{background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:36px 40px;width:100%;max-width:430px;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.login-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--brand-l));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;margin:0 auto 20px;overflow:hidden}
+.login-logo img{width:100%;height:100%;object-fit:contain;display:none}
+.login-card h2{text-align:center;font-size:22px;font-weight:800;margin-bottom:5px}
+.login-card .sub{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
+
+.role-tabs{display:flex;background:var(--bg3);border-radius:10px;padding:4px;gap:3px;margin-bottom:26px}
+.role-tab{flex:1;padding:8px;border-radius:7px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;font-family:inherit}
+.role-tab.active{background:linear-gradient(135deg,var(--primary),var(--primary-l));color:#fff;box-shadow:0 2px 10px var(--primary-glow)}
+
+.field{margin-bottom:16px}
+.field label{font-size:11px;color:var(--muted);display:block;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:all .15s;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-glow)}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-error{font-size:11px;color:var(--danger);margin-top:4px;display:none}
+.field-error.show{display:block}
+
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--muted);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Register Link */
+.reg-link{text-align:center;font-size:12px;color:var(--muted);margin-top:16px}
+.reg-link a{color:var(--primary-l);cursor:pointer;font-weight:600}
+.reg-link a:hover{text-decoration:underline}
+
+/* ═══════════════════════════════════
+   MAGIC LINK UI
+═══════════════════════════════════ */
+.magic-box{background:linear-gradient(135deg,rgba(6,182,212,.07),rgba(124,58,237,.05));border:1px dashed rgba(6,182,212,.35);border-radius:12px;padding:18px;margin-bottom:18px}
+.magic-box h4{color:var(--accent);font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.magic-box p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.ml-sent{text-align:center;padding:10px 0}
+.ml-sent .envelope{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,rgba(6,182,212,.15),rgba(124,58,237,.1));border:1px solid rgba(6,182,212,.4);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 20px;animation:glow 2.5s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(6,182,212,.25)}50%{box-shadow:0 0 0 14px rgba(6,182,212,0)}}
+.ml-sent h3{font-size:18px;font-weight:800;margin-bottom:8px}
+.ml-sent p{color:var(--muted);font-size:13px;line-height:1.6;max-width:320px;margin:0 auto 20px}
+.email-mockup{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;text-align:left;overflow:hidden;margin-bottom:16px}
+.em-header{background:var(--bg4);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.em-logo{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,var(--brand),var(--brand-l));display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex-shrink:0;overflow:hidden}
+.em-logo img{width:100%;height:100%;object-fit:contain;display:none}
+.em-info .em-subj{font-size:12px;font-weight:700}
+.em-info .em-from{font-size:11px;color:var(--muted);margin-top:1px}
+.em-body{padding:16px;font-size:12px;color:var(--text2);line-height:1.8}
+.em-cta{display:block;margin:12px 0 4px;padding:10px 20px;background:linear-gradient(135deg,var(--brand),var(--brand-l));color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;width:100%;transition:filter .15s}
+.em-cta:hover{filter:brightness(1.1)}
+.em-footer{font-size:10px;color:var(--muted);padding:10px 16px;border-top:1px solid var(--border)}
+.security-note{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--success);display:flex;align-items:center;gap:8px}
+
+/* ═══════════════════════════════════
+   APP LAYOUT
+═══════════════════════════════════ */
+.app-layout{display:flex;height:calc(100vh - 56px)}
+.sidebar{width:222px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:12px 0}
+.sb-section{padding:0 8px 10px}
+.sb-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;font-weight:700;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 9px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .12s;margin-bottom:1px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:rgba(124,58,237,.15);color:var(--primary-l)}
+.nav-item .ico{width:20px;text-align:center;font-size:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;border-radius:99px;font-size:10px;font-weight:800;padding:1px 7px}
+.sidebar-footer{margin-top:auto;padding:12px 8px 4px;border-top:1px solid var(--border)}
+.main{flex:1;overflow-y:auto;padding:28px}
+
+/* ═══════════════════════════════════
+   CARDS & LAYOUT
+═══════════════════════════════════ */
+.card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-sm{padding:14px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:700}
+.card-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gap-sm{gap:10px}
+.mb8{margin-bottom:8px}
+.mb12{margin-bottom:12px}
+.mb16{margin-bottom:16px}
+.mb20{margin-bottom:20px}
+.mb24{margin-bottom:24px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+
+/* ═══════════════════════════════════
+   STAT CARDS
+═══════════════════════════════════ */
+.stat-card{padding:18px}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.stat-val{font-size:26px;font-weight:800;line-height:1}
+.stat-delta{font-size:12px;color:var(--success);margin-top:5px;font-weight:600}
+.stat-delta.neg{color:var(--danger)}
+
+/* ═══════════════════════════════════
+   BADGES
+═══════════════════════════════════ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(16,185,129,.15);color:#10b981}
+.badge-red{background:rgba(239,68,68,.14);color:#ef4444}
+.badge-yellow{background:rgba(245,158,11,.14);color:#f59e0b}
+.badge-blue{background:rgba(6,182,212,.14);color:#06b6d4}
+.badge-purple{background:rgba(124,58,237,.15);color:#a855f7}
+.badge-gray{background:rgba(100,116,139,.15);color:#64748b}
+.badge-stripe{background:rgba(99,91,255,.15);color:#a5b4fc}
+
+/* ═══════════════════════════════════
+   PROGRESS
+═══════════════════════════════════ */
+.prog-wrap{margin:8px 0}
+.prog-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.prog-labels .val{font-weight:700;color:var(--primary-l)}
+.prog-track{background:var(--bg3);border-radius:99px;overflow:hidden}
+.prog-track.sm{height:5px}
+.prog-track.md{height:8px}
+.prog-track.lg{height:10px}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary-l));transition:width .6s cubic-bezier(.4,0,.2,1)}
+.prog-fill.success{background:linear-gradient(90deg,#059669,#10b981)}
+.prog-fill.warn{background:linear-gradient(90deg,#d97706,#f59e0b)}
+
+/* ═══════════════════════════════════
+   TABLE
+═══════════════════════════════════ */
+.tbl-wrap{overflow-x:auto;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid rgba(35,35,56,.6);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+
+/* ═══════════════════════════════════
+   FILE VAULT ROWS
+═══════════════════════════════════ */
+.file-row{display:flex;align-items:center;gap:12px;padding:13px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;transition:border-color .15s;position:relative;overflow:hidden}
+.file-row:hover{border-color:var(--primary)}
+.file-row.locked-row{opacity:.75}
+.file-icon{width:40px;height:40px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.file-actions{display:flex;gap:7px;align-items:center;flex-shrink:0}
+.file-type-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--bg3);padding:2px 7px;border-radius:5px}
+.premium-overlay{position:absolute;inset:0;background:rgba(8,8,15,.65);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;gap:10px;border-radius:10px}
+.premium-badge-big{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.35);border-radius:9px;padding:6px 14px;font-size:12px;font-weight:700;color:#ef4444}
+
+/* ═══════════════════════════════════
+   STRIPE CHECKOUT MODAL
+═══════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)}
+.modal{background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:0;width:100%;max-width:520px;box-shadow:0 32px 80px rgba(0,0,0,.6);overflow:hidden;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-header h3{font-size:16px;font-weight:800}
+.modal-close{background:var(--bg3);border:1px solid var(--border);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--muted);flex-shrink:0}
+.modal-close:hover{background:var(--bg4);color:var(--text)}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px 22px;border-top:1px solid var(--border)}
+
+/* Stripe Payment Form */
+.stripe-header{background:linear-gradient(135deg,#635bff15,#7a73ff08);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:12px}
+.stripe-logo{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600}
+.stripe-logo .sl{font-size:18px;font-weight:900;color:#635bff;letter-spacing:-1px}
+.test-mode-pill{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:99px;padding:3px 10px;font-size:10px;font-weight:800;color:var(--warn);letter-spacing:.3px;margin-left:auto}
+.stripe-amount{padding:18px 24px 0;text-align:center}
+.stripe-amount .amt{font-size:32px;font-weight:900}
+.stripe-amount .desc{font-size:13px;color:var(--muted);margin-top:4px}
+.stripe-form{padding:18px 24px}
+.sf-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.sf-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;transition:all .15s;font-family:'Inter',monospace;letter-spacing:.5px}
+.sf-input:focus{border-color:#635bff;box-shadow:0 0 0 3px rgba(99,91,255,.2)}
+.sf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.test-cards{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.test-cards h5{font-size:11px;font-weight:800;color:var(--warn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.test-card-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.test-card-row:last-child{margin-bottom:0}
+.test-card-row .tcn{font-size:12px;font-family:monospace;color:var(--text);letter-spacing:1px}
+.test-card-row .tcd{font-size:11px;color:var(--muted)}
+.use-card{background:transparent;border:none;cursor:pointer;font-size:11px;color:var(--accent);font-weight:700;font-family:inherit}
+.use-card:hover{text-decoration:underline}
+
+/* Processing / Success */
+.processing-overlay{position:absolute;inset:0;background:rgba(8,8,15,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:20px;gap:16px;z-index:10}
+.spinner{width:44px;height:44px;border:3px solid var(--border2);border-top-color:#635bff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.processing-overlay p{font-size:14px;font-weight:600;color:var(--muted)}
+.success-overlay{position:absolute;inset:0;background:rgba(8,8,15,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:20px;gap:14px;z-index:10;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.success-check{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(5,150,105,.1));border:2px solid var(--success);display:flex;align-items:center;justify-content:center;font-size:28px}
+.success-overlay h3{font-size:18px;font-weight:800;color:var(--success)}
+.success-overlay p{font-size:13px;color:var(--muted);text-align:center;max-width:280px}
+
+/* ═══════════════════════════════════
+   EMAIL LOG
+═══════════════════════════════════ */
+.email-log-item{display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:9px;border:1px solid var(--border);margin-bottom:8px}
+.el-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.el-icon.update{background:rgba(124,58,237,.15)}
+.el-icon.payment{background:rgba(16,185,129,.15)}
+.el-icon.file{background:rgba(6,182,212,.15)}
+.el-icon.magic{background:rgba(245,158,11,.12)}
+.el-info .el-subject{font-size:13px;font-weight:700}
+.el-info .el-to{font-size:11px;color:var(--muted);margin-top:2px}
+.el-info .el-time{font-size:11px;color:var(--muted)}
+.el-status{margin-left:auto;flex-shrink:0}
+
+/* ═══════════════════════════════════
+   BRANDING PAGE
+═══════════════════════════════════ */
+.upload-zone{border:2px dashed var(--border2);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:14px;position:relative;overflow:hidden}
+.upload-zone:hover{border-color:var(--primary);background:var(--primary-glow)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:32px;margin-bottom:10px}
+.upload-zone h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.upload-zone p{font-size:12px;color:var(--muted)}
+.logo-preview{display:none;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
+.logo-preview img{max-width:120px;max-height:60px;object-fit:contain}
+.logo-preview .lp-remove{font-size:11px;color:var(--danger);cursor:pointer;font-weight:700}
+.color-pick-row{display:flex;gap:10px;align-items:center}
+.color-pick-row input[type=color]{width:46px;height:38px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;padding:2px;background:var(--bg3)}
+.color-pick-row .color-hex{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:9px 14px;color:var(--text);font-size:14px;font-family:monospace;outline:none}
+.color-pick-row .color-hex:focus{border-color:var(--primary)}
+.preview-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);margin-top:16px}
+.preview-topbar{height:44px;display:flex;align-items:center;padding:0 16px;gap:10px;border-bottom:1px solid var(--border)}
+.preview-topbar .p-logo{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#fff;overflow:hidden;flex-shrink:0}
+.preview-topbar .p-logo img{width:100%;height:100%;object-fit:contain;display:none}
+.preview-topbar .p-name{font-size:13px;font-weight:700}
+.preview-body{padding:16px}
+.preview-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;color:#fff;margin-top:10px}
+.agency-gate{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(239,68,68,.05));border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:20px;text-align:center}
+.agency-gate .ag-icon{font-size:36px;margin-bottom:12px}
+.agency-gate h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.agency-gate p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+
+/* ═══════════════════════════════════
+   CLIENT PORTAL
+═══════════════════════════════════ */
+.client-hero{border-radius:16px;padding:28px;margin-bottom:24px;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(6,182,212,.08));border:1px solid rgba(124,58,237,.25);position:relative;overflow:hidden}
+.client-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.2),transparent 70%)}
+.client-brand-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.client-logo-wrap{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-l));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;overflow:hidden;flex-shrink:0}
+.client-logo-wrap img{width:100%;height:100%;object-fit:contain;display:none}
+
+/* ═══════════════════════════════════
+   ALERTS
+═══════════════════════════════════ */
+.alert{display:flex;gap:10px;padding:12px 14px;border-radius:9px;font-size:13px;margin-bottom:14px}
+.alert-info{background:rgba(6,182,212,.09);border:1px solid rgba(6,182,212,.25);color:var(--accent)}
+.alert-success{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.25);color:var(--success)}
+.alert-warn{background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.25);color:var(--warn)}
+.alert-danger{background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.25);color:var(--danger)}
+.alert-stripe{background:rgba(99,91,255,.09);border:1px solid rgba(99,91,255,.3);color:#a5b4fc}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--bg4);border:1px solid var(--border2);border-radius:11px;padding:12px 18px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .25s ease;max-width:320px;display:flex;align-items:center;gap:10px;pointer-events:auto}
+.toast.success{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:var(--success)}
+.toast.error{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:var(--danger)}
+.toast.info{border-color:rgba(6,182,212,.4);background:rgba(6,182,212,.1);color:var(--accent)}
+.toast.stripe{border-color:rgba(99,91,255,.4);background:rgba(99,91,255,.1);color:#a5b4fc}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ═══════════════════════════════════
+   PLAN CARDS
+═══════════════════════════════════ */
+.plan-card{border:2px solid var(--border);border-radius:14px;padding:22px;cursor:pointer;transition:all .15s;position:relative}
+.plan-card:hover{border-color:var(--primary);background:rgba(124,58,237,.04)}
+.plan-card.active-plan{border-color:var(--primary);background:rgba(124,58,237,.08)}
+.plan-badge{position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,var(--primary),var(--primary-l));color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.plan-name{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.plan-price{font-size:28px;font-weight:900;margin-bottom:4px}
+.plan-price span{font-size:14px;font-weight:400;color:var(--muted)}
+.plan-features{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.plan-feature{font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.plan-feature.locked{color:var(--muted)}
+.pf-check{color:var(--success);font-size:13px}
+.pf-lock{color:var(--muted);font-size:11px}
+
+/* ═══════════════════════════════════
+   PAGE HEADERS
+═══════════════════════════════════ */
+.page-header{margin-bottom:24px}
+.page-header .ph-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.page-title{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* ═══════════════════════════════════
+   PLAN GATE OVERLAY (for locked features)
+═══════════════════════════════════ */
+.plan-gate{
+  background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(6,182,212,.04));
+  border:1px solid rgba(124,58,237,.25);border-radius:12px;
+  padding:28px;text-align:center;margin-bottom:20px;
+}
+.plan-gate .pg-icon{font-size:36px;margin-bottom:12px}
+.plan-gate h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.plan-gate p{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto}
+
+/* ═══════════════════════════════════
+   USER MANAGEMENT (SuperAdmin)
+═══════════════════════════════════ */
+.user-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:9px;border:1px solid var(--border);margin-bottom:8px;transition:border-color .15s}
+.user-row:hover{border-color:var(--border2)}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:700}
+.user-email{font-size:11px;color:var(--muted);margin-top:2px}
+.user-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
+@media(max-width:768px){
+  .sidebar{width:56px}
+  .sidebar .nav-item span,.sb-label,.sidebar-footer .btn-full{display:none}
+  .sidebar .nav-item .ico{width:100%;text-align:center;margin:0}
+  .grid4{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .main{padding:16px}
+  .login-card{padding:28px 24px}
+  .field-row{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .grid4{grid-template-columns:1fr}
+  .file-actions{flex-direction:column;align-items:flex-end}
+}
+</style>
+</head>
+<body class="has-banner">
+
+<!-- ░░ STRIPE TEST BANNER ░░ -->
+<div class="stripe-banner">
+  <span>⚡</span>
+  <span class="test-pill">TEST MODE</span>
+  <span>Stripe payments are in test mode — no real charges. Use card <strong>4242 4242 4242 4242</strong></span>
+</div>
+
+<!-- ░░ TOPNAV ░░ -->
+<nav class="topnav" id="topnav">
+  <div class="logo-wrap" onclick="goHome()">
+    <div class="logo-mark" id="nav-logo-mark">
+      <img id="nav-logo-img" alt="logo" />
+      <span id="nav-logo-text">S</span>
+    </div>
+    <div class="logo-text" id="nav-logo-name">shadow<span class="dot">.</span></div>
+  </div>
+  <div class="nav-right">
+    <div id="nav-guest">
+      <button class="btn btn-ghost btn-sm" onclick="showPage('login')">Log In</button>
+    </div>
+    <div id="nav-auth" class="hidden" style="display:flex;align-items:center;gap:8px">
+      <div class="nav-chip" id="nav-chip">
+        <span id="nav-role-icon">👤</span>
+        <span id="nav-role-label">Admin</span>
+      </div>
+      <span class="plan-badge-nav" id="nav-plan-badge">Pro</span>
+      <div class="nav-avatar" id="nav-avatar">A</div>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ░░ TOAST ░░ -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ════════════════════════════════════
+     PAGE: LOGIN / REGISTER
+════════════════════════════════════ -->
+<div class="page active" id="page-login">
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="login-logo" id="login-logo-mark">
+        <img id="login-logo-img" alt="" />
+        <span id="login-logo-text">S</span>
+      </div>
+      <h2 id="login-title">Welcome to Shadow Portal</h2>
+      <p class="sub" id="login-sub">Secure client &amp; project management</p>
+
+      <!-- tabs: shown dynamically based on who's visiting -->
+      <div class="role-tabs" id="login-role-tabs">
+        <!-- Admin tab: only visible to superadmin/granted-admin emails -->
+        <button class="role-tab hidden" id="tab-loginadmin" onclick="setLoginMode('admin')">🔑 Admin</button>
+        <button class="role-tab active" id="tab-register" onclick="setLoginMode('register')">✨ Register</button>
+        <button class="role-tab" id="tab-loginuser" onclick="setLoginMode('loginuser')">🔑 Log In</button>
+        <button class="role-tab" id="tab-client" onclick="setLoginMode('client')">🔗 Client Portal</button>
+      </div>
+
+      <!-- ADMIN LOGIN FORM -->
+      <div id="admin-login-form">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="admin-email" placeholder="admin@company.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="admin-pw" placeholder="Your password" />
+          <div class="field-error" id="login-error">Invalid email or password.</div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="doAdminLogin()" style="margin-top:8px">Sign In →</button>
+        <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">Forgot password? <a href="#" style="color:var(--primary-l)" onclick="showToast('📧 Password reset email sent!','info')">Reset it</a></p>
+        <div class="reg-link">Not an admin? <a onclick="setLoginMode('register')">Register a regular account →</a></div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="register-form" class="hidden">
+        <div class="alert alert-info mb16" style="font-size:12px">
+          <span>🎉</span><div>Free plan includes 2 clients, basic file vault, and Stripe payment links. Upgrade anytime.</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>First Name</label><input type="text" id="reg-fname" placeholder="Alex" /></div>
+          <div class="field"><label>Last Name</label><input type="text" id="reg-lname" placeholder="Smith" /></div>
+        </div>
+        <div class="field"><label>Email Address</label><input type="email" id="reg-email" placeholder="you@studio.io" /></div>
+        <div class="field"><label>Password</label><input type="password" id="reg-pw" placeholder="Min 6 characters" /></div>
+        <div class="field"><label>Studio / Company Name</label><input type="text" id="reg-studio" placeholder="My Studio" /></div>
+        <div class="field-error" id="reg-error" style="display:none;margin-bottom:8px"></div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="doRegister()">Create Free Account →</button>
+        <div class="reg-link">Already have an account? <a onclick="setLoginMode('loginuser')">Sign in →</a></div>
+      </div>
+
+      <!-- REGULAR USER LOGIN FORM -->
+      <div id="user-login-form" class="hidden">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="user-login-email" placeholder="you@studio.io" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="user-login-pw" placeholder="Your password" />
+          <div class="field-error" id="user-login-error">Invalid email or password.</div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="doUserLogin()" style="margin-top:8px">Sign In →</button>
+        <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:14px">Forgot password? <a href="#" style="color:var(--primary-l)" onclick="showToast('📧 Password reset email sent!','info')">Reset it</a></p>
+        <div class="reg-link">Don't have an account? <a onclick="setLoginMode('register')">Create one free →</a></div>
+      </div>
+
+      <!-- CLIENT MAGIC LINK FORM -->
+      <div id="client-login-form" class="hidden">
+        <div class="alert alert-stripe mb16">
+          <span>🔐</span>
+          <div><strong>Zero-password login.</strong> Enter your email and we'll send a secure magic link — valid for 15 minutes, single use only.</div>
+        </div>
+        <div class="magic-box">
+          <h4>✨ Magic Link Login</h4>
+          <p>No password needed. Click the link in your email to access your private project dashboard instantly.</p>
+          <div class="field mb8"><label>Your Email</label><input type="email" id="client-email" placeholder="you@company.com" value="john@techcorp.io" /></div>
+          <button class="btn btn-full" style="background:linear-gradient(135deg,var(--accent),#0284c7);color:#fff;" onclick="sendMagicLink()">✉️ Send Magic Link</button>
+        </div>
+        <div class="divider">or bypass for demo</div>
+        <button class="btn btn-ghost btn-full" onclick="doClientLogin('techcorp')">🚀 Login as TechCorp (Demo)</button>
+        <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="doClientLogin('shopifyco')">🚀 Login as Shopify Co. (Demo)</button>
+      </div>
+
+      <!-- MAGIC LINK SENT SCREEN -->
+      <div id="magic-sent-screen" class="hidden">
+        <div class="ml-sent">
+          <div class="envelope">✉️</div>
+          <h3>Check your inbox!</h3>
+          <p>A secure magic link has been sent to <strong id="ml-email-display">john@techcorp.io</strong>. The link expires in 15 minutes and works only once.</p>
+          <div class="email-mockup">
+            <div class="em-header">
+              <div class="em-logo" id="ml-em-logo"><img id="ml-em-logo-img" alt=""/><span id="ml-em-logo-text">S</span></div>
+              <div class="em-info">
+                <div class="em-subj">🔗 Your Shadow Portal Login Link</div>
+                <div class="em-from">noreply@shadowportal.io → <span id="ml-em-to">john@techcorp.io</span></div>
+              </div>
+            </div>
+            <div class="em-body">
+              Hi <strong id="ml-client-name">John</strong>,<br/><br/>
+              You requested access to your project portal. Click the button below to log in — no password required.<br/><br/>
+              <strong>⏱ This link expires in 15 minutes.</strong>
+              <button class="em-cta" onclick="doClientLogin('techcorp')">🔓 Access My Project Dashboard →</button>
+            </div>
+            <div class="em-footer">🔒 This link is single-use and tied to your email address. If you didn't request this, ignore this email.</div>
+          </div>
+          <div class="security-note">
+            <span>🛡️</span>
+            <span>Each link is cryptographically signed (JWT) and bound to a specific client ID — ensuring isolation between client accounts.</span>
+          </div>
+          <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="resetMagicForm()">← Back</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     ADMIN DASHBOARD
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sb-section">
+        <div class="sb-label">Workspace</div>
+        <div class="nav-item active" data-tab="overview" onclick="adminTab('overview',this)"><span class="ico">📊</span><span>Overview</span></div>
+        <div class="nav-item" data-tab="projects" onclick="adminTab('projects',this)"><span class="ico">📁</span><span>Projects</span></div>
+        <div class="nav-item" data-tab="clients" onclick="adminTab('clients',this)"><span class="ico">👥</span><span>Clients</span></div>
+        <div class="nav-item" data-tab="filevault" onclick="adminTab('filevault',this)"><span class="ico">🔐</span><span>File Vault</span></div>
+        <div class="nav-item" data-tab="payments" onclick="adminTab('payments',this)"><span class="ico">💳</span><span>Payments</span></div>
+        <div class="nav-item" data-tab="emails" onclick="adminTab('emails',this)"><span class="ico">📧</span><span>Email Log</span><span class="nav-badge" id="email-badge">4</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Settings</div>
+        <div class="nav-item" data-tab="branding" onclick="adminTab('branding',this)"><span class="ico">🎨</span><span>Branding</span></div>
+        <div class="nav-item" data-tab="billing" onclick="adminTab('billing',this)"><span class="ico">💰</span><span>My Plan</span></div>
+        <!-- SuperAdmin only -->
+        <div class="nav-item hidden" data-tab="superadmin" onclick="adminTab('superadmin',this)" id="sidebar-superadmin"><span class="ico">🛡️</span><span>Users</span></div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-full btn-sm" onclick="logout()">← Logout</button>
+      </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+      <!-- ── OVERVIEW ── -->
+      <section id="tab-overview">
+        <div class="page-header">
+          <div class="ph-top">
+            <div>
+              <div class="page-title" id="overview-greeting">Dashboard</div>
+              <div class="page-sub">Welcome back! Here's your workspace at a glance.</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="adminTab('projects',null);openNewProject()">+ New Project</button>
+          </div>
+        </div>
+        <div class="grid4 mb24">
+          <div class="card stat-card"><div class="stat-label">Active Projects</div><div class="stat-val" id="stat-projects">7</div><div class="stat-delta">↑ 2 this month</div></div>
+          <div class="card stat-card"><div class="stat-label">Total Clients</div><div class="stat-val" id="stat-clients">3</div><div class="stat-delta" id="stat-clients-sub">4 pending invite</div></div>
+          <div class="card stat-card"><div class="stat-label">Revenue (MTD)</div><div class="stat-val">€4,820</div><div class="stat-delta">↑ 18% vs last</div></div>
+          <div class="card stat-card"><div class="stat-label">Locked Files</div><div class="stat-val" id="stat-locked">4</div><div class="stat-delta neg" id="stat-locked-sub">Pending payment</div></div>
+        </div>
+        <div class="alert alert-stripe mb20">
+          <span>⚡</span>
+          <div><strong>Stripe Test Mode Active.</strong> All payments use test keys. No real charges. Use <code style="background:rgba(99,91,255,.2);padding:1px 6px;border-radius:4px">4242 4242 4242 4242</code> with any future date and any CVC.</div>
+        </div>
+        <div class="grid2 mb24">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Recent Projects</div></div><button class="btn btn-ghost btn-xs" onclick="adminTab('projects',null)">View all →</button></div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Project</th><th>Client</th><th>Progress</th><th>Status</th></tr></thead>
+                <tbody id="overview-projects-tbody">
+                  <tr><td><div style="font-weight:600">Brand Identity v2</div><div style="font-size:11px;color:var(--muted)">Due Apr 30</div></td><td>TechCorp</td><td><div class="prog-track sm" style="width:80px"><div class="prog-fill" style="width:68%"></div></div></td><td><span class="badge badge-green">Active</span></td></tr>
+                  <tr><td><div style="font-weight:600">E-Commerce Redesign</div><div style="font-size:11px;color:var(--muted)">Due May 15</div></td><td>Shopify Co.</td><td><div class="prog-track sm" style="width:80px"><div class="prog-fill warn" style="width:40%"></div></div></td><td><span class="badge badge-yellow">Review</span></td></tr>
+                  <tr><td><div style="font-weight:600">Mobile App UI</div><div style="font-size:11px;color:var(--muted)">Due Apr 25</div></td><td>StartupXYZ</td><td><div class="prog-track sm" style="width:80px"><div class="prog-fill success" style="width:90%"></div></div></td><td><span class="badge badge-blue">Final</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Recent Payments</div><span class="badge badge-stripe">Stripe Test</span></div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Client</th><th>Amount</th><th>Files</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>TechCorp</td><td>€1,200</td><td>2 unlocked</td><td><span class="badge badge-green">Paid</span></td></tr>
+                  <tr><td>Shopify Co.</td><td>€850</td><td>Locked</td><td><span class="badge badge-yellow">Pending</span></td></tr>
+                  <tr><td>StartupXYZ</td><td>€2,400</td><td>5 unlocked</td><td><span class="badge badge-green">Paid</span></td></tr>
+                  <tr><td>LawFirm LLC</td><td>€600</td><td>Locked</td><td><span class="badge badge-red">Overdue</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── PROJECTS ── -->
+      <section id="tab-projects" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">Projects</div><div class="page-sub">Manage all client projects and deliverables</div></div>
+            <button class="btn btn-primary btn-sm" onclick="checkPlanAndAct('projects',openNewProject)">+ New Project</button>
+          </div>
+        </div>
+        <!-- Free plan limit notice -->
+        <div class="alert alert-warn mb16 hidden" id="projects-limit-notice">
+          <span>⚠️</span><div><strong>Free Plan:</strong> You're limited to 2 projects. <a href="#" onclick="adminTab('billing',null)" style="color:inherit;font-weight:700">Upgrade to Pro</a> for unlimited projects.</div>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Project</th><th>Client</th><th>Progress</th><th>Files</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="projects-tbody">
+                <tr>
+                  <td><div style="font-weight:700">Brand Identity v2</div><div style="font-size:11px;color:var(--muted)">Due Apr 30, 2025</div></td>
+                  <td><div style="display:flex;align-items:center;gap:7px"><div class="nav-avatar" style="width:24px;height:24px;font-size:10px">T</div>TechCorp</div></td>
+                  <td><div class="prog-track sm" style="width:90px"><div class="prog-fill" style="width:68%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">68%</div></td>
+                  <td><span class="badge badge-blue">8 files</span></td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="adminTab('filevault',null)">Files</button><button class="btn btn-primary btn-xs" onclick="openProgressModal('Brand Identity v2','TechCorp',68)">Progress</button></div></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:700">E-Commerce Redesign</div><div style="font-size:11px;color:var(--muted)">Due May 15, 2025</div></td>
+                  <td><div style="display:flex;align-items:center;gap:7px"><div class="nav-avatar" style="width:24px;height:24px;font-size:10px;background:linear-gradient(135deg,#06b6d4,#0284c7)">S</div>Shopify Co.</div></td>
+                  <td><div class="prog-track sm" style="width:90px"><div class="prog-fill warn" style="width:40%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">40%</div></td>
+                  <td><span class="badge badge-blue">5 files</span></td>
+                  <td><span class="badge badge-yellow">Review</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="adminTab('filevault',null)">Files</button><button class="btn btn-primary btn-xs" onclick="openProgressModal('E-Commerce Redesign','Shopify Co.',40)">Progress</button></div></td>
+                </tr>
+                <tr>
+                  <td><div style="font-weight:700">Mobile App UI Kit</div><div style="font-size:11px;color:var(--muted)">Due Apr 25, 2025</div></td>
+                  <td><div style="display:flex;align-items:center;gap:7px"><div class="nav-avatar" style="width:24px;height:24px;font-size:10px">X</div>StartupXYZ</div></td>
+                  <td><div class="prog-track sm" style="width:90px"><div class="prog-fill success" style="width:90%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:3px">90%</div></td>
+                  <td><span class="badge badge-blue">12 files</span></td>
+                  <td><span class="badge badge-blue">Final Stage</span></td>
+                  <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="adminTab('filevault',null)">Files</button><button class="btn btn-primary btn-xs" onclick="openProgressModal('Mobile App UI Kit','StartupXYZ',90)">Progress</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── CLIENTS ── -->
+      <section id="tab-clients" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">Clients</div><div class="page-sub" id="clients-plan-note">Loading...</div></div>
+            <button class="btn btn-primary btn-sm" onclick="checkPlanAndAct('clients',openInviteModal)">+ Invite Client</button>
+          </div>
+        </div>
+        <!-- Free plan: 2 client limit notice -->
+        <div class="alert alert-warn mb16 hidden" id="clients-limit-notice">
+          <span>⚠️</span><div><strong>Free Plan:</strong> You're limited to 2 clients. <a href="#" onclick="adminTab('billing',null)" style="color:inherit;font-weight:700">Upgrade to Pro</a> for unlimited clients.</div>
+        </div>
+        <div class="grid3" id="clients-grid">
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <div class="nav-avatar" style="width:40px;height:40px;font-size:16px">T</div>
+              <div><div style="font-weight:700;font-size:14px">TechCorp</div><div style="font-size:12px;color:var(--muted)">john@techcorp.io</div></div>
+              <span class="badge badge-green" style="margin-left:auto">Active</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-labels"><span>Brand Identity v2</span><span class="val">68%</span></div><div class="prog-track md"><div class="prog-fill" style="width:68%"></div></div></div>
+            <div style="display:flex;gap:6px;margin-top:12px"><span class="badge badge-blue">1 project</span><span class="badge badge-stripe">Magic Link</span></div>
+          </div>
+          <div class="card">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <div class="nav-avatar" style="width:40px;height:40px;font-size:16px;background:linear-gradient(135deg,#06b6d4,#0284c7)">S</div>
+              <div><div style="font-weight:700;font-size:14px">Shopify Co.</div><div style="font-size:12px;color:var(--muted)">sara@shopify.co</div></div>
+              <span class="badge badge-yellow" style="margin-left:auto">Review</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-labels"><span>E-Commerce Redesign</span><span class="val">40%</span></div><div class="prog-track md"><div class="prog-fill warn" style="width:40%"></div></div></div>
+            <div style="display:flex;gap:6px;margin-top:12px"><span class="badge badge-blue">1 project</span><span class="badge badge-stripe">Magic Link</span></div>
+          </div>
+          <div class="card" style="border:1px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;cursor:pointer" onclick="checkPlanAndAct('clients',openInviteModal)">
+            <div style="font-size:28px;margin-bottom:8px;opacity:.5">+</div>
+            <div style="font-size:13px;color:var(--muted)">Invite new client</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Sends magic link email</div>
+          </div>
+        </div>
+        <div class="alert alert-info" style="margin-top:16px">
+          <span>🔒</span>
+          <div><strong>Client Isolation:</strong> Each client session is scoped to their unique ID. JWT tokens contain <code style="background:rgba(6,182,212,.1);padding:1px 5px;border-radius:3px">clientId</code> claims — no client can access another's projects.</div>
+        </div>
+      </section>
+
+      <!-- ── FILE VAULT ── -->
+      <section id="tab-filevault" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">File Vault</div><div class="page-sub">Brand Identity v2 — TechCorp</div></div>
+            <button class="btn btn-primary btn-sm" onclick="simulateUpload()">↑ Upload Files</button>
+          </div>
+        </div>
+        <div class="alert alert-warn mb16">
+          <span>🔐</span>
+          <div><strong>Payment-Lock Active:</strong> Files marked <strong>Premium</strong> are locked for the client until Stripe payment succeeds. The lock flips automatically via webhook — no manual action needed.</div>
+        </div>
+        <div id="admin-file-list"></div>
+      </section>
+
+      <!-- ── PAYMENTS ── -->
+      <section id="tab-payments" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">Payments</div><div class="page-sub">Stripe Test Mode — Real webhook simulation</div></div>
+            <span class="badge badge-stripe" style="padding:6px 14px;font-size:12px">⚡ Stripe Test Mode</span>
+          </div>
+        </div>
+        <div class="grid3 mb24">
+          <div class="card stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val">€18,420</div><div class="stat-delta">All time</div></div>
+          <div class="card stat-card"><div class="stat-label">This Month</div><div class="stat-val">€4,820</div><div class="stat-delta">↑ 18%</div></div>
+          <div class="card stat-card"><div class="stat-label">Locked Revenue</div><div class="stat-val" id="pending-rev">€1,648</div><div class="stat-delta neg">Files locked</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Transaction Log</div><div class="card-sub">Stripe webhook events</div></div>
+            <button class="btn btn-ghost btn-xs" onclick="showToast('Opening Stripe Dashboard...','stripe')">Stripe Dashboard ↗</button>
+          </div>
+          <div class="tbl-wrap" id="payment-log"></div>
+        </div>
+      </section>
+
+      <!-- ── EMAIL LOG ── -->
+      <section id="tab-emails" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">Email Log</div><div class="page-sub">Automated notification history</div></div>
+            <span class="badge badge-blue">Powered by Resend</span>
+          </div>
+        </div>
+        <div class="alert alert-info mb20">
+          <span>📧</span>
+          <div><strong>Auto-Triggers:</strong> Emails fire automatically when you update progress, upload files, or when Stripe confirms payment. No manual sending needed.</div>
+        </div>
+        <div id="email-log-list"></div>
+      </section>
+
+      <!-- ── BRANDING ── -->
+      <section id="tab-branding" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">White-Label Branding</div><div class="page-sub">Agency Plan — Customize the client portal</div></div>
+        </div>
+        <div id="agency-gate" class="agency-gate mb24">
+          <div class="ag-icon">🏢</div>
+          <h3>Agency Plan Required</h3>
+          <p>White-label branding is exclusively available on the <strong>Agency Plan (€150/mo)</strong>. Upload your logo, set brand colors, and remove all "Shadow" branding from client-facing portals.</p>
+          <button class="btn btn-primary" onclick="adminTab('billing',null)">Upgrade to Agency →</button>
+          <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="simulateAgencyUpgrade()">🚀 Simulate Agency Upgrade (Demo)</button></div>
+        </div>
+        <div id="branding-form" class="hidden">
+          <div class="alert alert-success mb20">
+            <span>✅</span>
+            <div><strong>Agency Plan Active.</strong> Your branding will replace all "Shadow Portal" references in client-facing pages.</div>
+          </div>
+          <div class="grid2">
+            <div>
+              <div class="card mb16">
+                <div class="card-title mb16">Logo Upload</div>
+                <div id="upload-zone" class="upload-zone" onclick="triggerLogoUpload()">
+                  <input type="file" id="logo-file-input" accept="image/png,image/svg+xml,image/jpeg,image/webp" onchange="handleLogoUpload(event)" style="display:none" />
+                  <div class="uz-icon">☁️</div>
+                  <h4>Drop your logo here</h4>
+                  <p>PNG, SVG, JPG or WEBP · Max 2 MB<br/>Transparent background recommended</p>
+                </div>
+                <div class="logo-preview" id="logo-preview">
+                  <img id="logo-preview-img" alt="Your logo" />
+                  <span class="lp-remove" onclick="removeLogo()">✕ Remove logo</span>
+                </div>
+                <div class="field">
+                  <label>Company / Studio Name</label>
+                  <input type="text" id="brand-name" placeholder="Your Studio Name" oninput="updatePreview()" />
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title mb16">Brand Colors</div>
+                <div class="field">
+                  <label>Primary Color</label>
+                  <div class="color-pick-row">
+                    <input type="color" id="color-primary" value="#7c3aed" oninput="syncColor('primary')" />
+                    <input type="text" class="color-hex" id="hex-primary" value="#7c3aed" oninput="syncHex('primary')" maxlength="7" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Accent / Secondary Color</label>
+                  <div class="color-pick-row">
+                    <input type="color" id="color-accent" value="#a855f7" oninput="syncColor('accent')" />
+                    <input type="text" class="color-hex" id="hex-accent" value="#a855f7" oninput="syncHex('accent')" maxlength="7" />
+                  </div>
+                </div>
+                <div class="field" style="margin-top:16px">
+                  <label>Remove "Powered by Shadow" Footer</label>
+                  <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500;font-size:13px">
+                      <input type="checkbox" id="remove-powered" style="width:16px;height:16px;accent-color:var(--primary)" checked />
+                      Remove footer branding
+                    </label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Custom Domain (Agency)</label>
+                  <input type="text" placeholder="portal.yourcompany.com" id="custom-domain" />
+                  <div style="font-size:11px;color:var(--muted);margin-top:5px">Add a CNAME record pointing to <code>shadow.app</code> in your DNS</div>
+                </div>
+                <button class="btn btn-success btn-full" style="margin-top:12px" onclick="saveBranding()">💾 Save &amp; Apply Branding</button>
+              </div>
+            </div>
+            <div>
+              <div class="card">
+                <div class="card-title mb16">Live Preview — Client Portal</div>
+                <div class="preview-card">
+                  <div class="preview-topbar" id="preview-topbar">
+                    <div class="p-logo" id="preview-logo" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">
+                      <img id="preview-logo-img" alt="" />
+                      <span id="preview-logo-text">S</span>
+                    </div>
+                    <div class="p-name" id="preview-name">Your Studio</div>
+                    <span style="margin-left:auto;font-size:11px;color:var(--muted)">Client Portal</span>
+                  </div>
+                  <div class="preview-body">
+                    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Active Project</div>
+                    <div style="font-size:15px;font-weight:700;margin-bottom:10px">Brand Identity v2</div>
+                    <div class="prog-track md"><div class="prog-fill" id="preview-prog" style="width:68%"></div></div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:5px">68% Complete</div>
+                    <div class="preview-btn" id="preview-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);margin-top:12px">📂 View Files</div>
+                    <div id="preview-footer" style="font-size:10px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">Powered by Shadow Portal</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── BILLING ── -->
+      <section id="tab-billing" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">My Plan</div><div class="page-sub">Manage your Shadow Portal subscription</div></div>
+        </div>
+        <div class="alert alert-stripe mb24">
+          <span>⚡</span><div>You are currently on the <strong id="current-plan-name">Pro Plan</strong> — billed monthly via Stripe.</div>
+        </div>
+        <div class="grid3">
+          <div class="plan-card" id="plan-free">
+            <div class="plan-name">Free</div>
+            <div class="plan-price">€0<span>/mo</span></div>
+            <div class="plan-features">
+              <div class="plan-feature"><span class="pf-check">✓</span>2 client accounts</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>2 projects max</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Basic file vault</div>
+              <div class="plan-feature locked"><span class="pf-lock">🔒</span>Payment-locked files</div>
+              <div class="plan-feature locked"><span class="pf-lock">🔒</span>Custom branding</div>
+              <div class="plan-feature locked"><span class="pf-lock">🔒</span>Email notifications</div>
+            </div>
+            <button class="btn btn-ghost btn-full btn-sm" style="margin-top:14px" onclick="selectPlan('free')">Downgrade to Free</button>
+          </div>
+          <div class="plan-card active-plan" id="plan-pro">
+            <div class="plan-badge" id="pro-badge">Current Plan</div>
+            <div class="plan-name">⚡ Pro</div>
+            <div class="plan-price">€30<span>/mo</span></div>
+            <div class="plan-features">
+              <div class="plan-feature"><span class="pf-check">✓</span>Unlimited clients</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Unlimited projects</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Payment-locked files</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Email notifications</div>
+              <div class="plan-feature locked"><span class="pf-lock">🔒</span>Custom branding</div>
+              <div class="plan-feature locked"><span class="pf-lock">🔒</span>Remove Shadow footer</div>
+            </div>
+            <button class="btn btn-ghost btn-full btn-sm" style="margin-top:14px" id="pro-plan-btn" onclick="selectPlan('pro')">Upgrade to Pro (Test)</button>
+          </div>
+          <div class="plan-card" id="plan-agency">
+            <div class="plan-name" style="color:var(--accent)">🏢 Agency</div>
+            <div class="plan-price">€150<span>/mo</span></div>
+            <div class="plan-features">
+              <div class="plan-feature"><span class="pf-check">✓</span>Everything in Pro</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Upload custom logo</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Brand color picker</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Remove Shadow footer</div>
+              <div class="plan-feature"><span class="pf-check">✓</span>Custom domain mapping</div>
+            </div>
+            <button class="btn btn-primary btn-full btn-sm" style="margin-top:14px" id="agency-plan-btn" onclick="selectPlan('agency')">Upgrade to Agency (Test)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── SUPERADMIN: USER MANAGEMENT ── -->
+      <section id="tab-superadmin" class="hidden">
+        <div class="page-header">
+          <div class="ph-top">
+            <div><div class="page-title">🛡️ User Management</div><div class="page-sub">Super Admin — Manage all registered users and their plans</div></div>
+            <span class="badge badge-red" style="padding:6px 14px;font-size:12px">SuperAdmin Only</span>
+          </div>
+        </div>
+        <div class="alert alert-danger mb20">
+          <span>🛡️</span><div><strong>Super Admin Panel.</strong> You can view all users, change their plan (Free / Pro / Agency), and manage accounts. This panel is only visible to the super admin email.</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">All Registered Users</div><div class="card-sub" id="user-count-label">Loading...</div></div>
+          </div>
+          <div id="user-management-list"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     CLIENT PORTAL
+════════════════════════════════════════════════════ -->
+<div class="page" id="page-client">
+  <div class="app-layout">
+    <nav class="sidebar">
+      <div class="sb-section">
+        <div class="sb-label">My Portal</div>
+        <div class="nav-item active" data-ctab="coverview" onclick="clientTab('coverview',this)"><span class="ico">🏠</span><span>Overview</span></div>
+        <div class="nav-item" data-ctab="cfiles" onclick="clientTab('cfiles',this)"><span class="ico">📂</span><span>My Files</span></div>
+        <div class="nav-item" data-ctab="cinvoices" onclick="clientTab('cinvoices',this)"><span class="ico">💳</span><span>Invoices</span></div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-full btn-sm" onclick="logout()">← Logout</button>
+      </div>
+    </nav>
+    <main class="main">
+      <!-- CLIENT OVERVIEW -->
+      <section id="tab-coverview">
+        <div class="client-hero">
+          <div class="client-brand-row">
+            <div class="client-logo-wrap" id="c-logo-wrap">
+              <img id="c-logo-img" alt="logo" style="display:none"/>
+              <span id="c-logo-text">S</span>
+            </div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px">Your Portal</div>
+              <div style="font-size:19px;font-weight:800" id="c-studio-name">Shadow Studio</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:11px;color:rgba(255,255,255,.5)">Logged in as</div>
+              <div style="font-size:13px;font-weight:700" id="c-client-name">TechCorp</div>
+            </div>
+          </div>
+          <div style="margin-bottom:6px;font-size:13px;color:rgba(255,255,255,.6)">Active Project: <strong style="color:#fff" id="c-project-name">Brand Identity v2</strong></div>
+          <div class="prog-wrap">
+            <div class="prog-labels"><span style="font-weight:600">Project Progress</span><span class="val" id="c-prog-val">68%</span></div>
+            <div class="prog-track lg"><div class="prog-fill" id="c-prog-fill" style="width:68%"></div></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <span class="badge badge-green">Active</span>
+            <span id="c-file-badge" class="badge badge-blue">6 files total</span>
+            <span id="c-locked-badge" class="badge badge-red">2 locked</span>
+          </div>
+        </div>
+        <div class="grid2 mb24">
+          <div class="card">
+            <div class="card-title mb16">📋 Project Milestones</div>
+            <div id="c-milestones"></div>
+          </div>
+          <div class="card">
+            <div class="card-title mb16">🔐 File Access</div>
+            <div id="c-file-summary"></div>
+            <div id="c-payment-prompt"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLIENT FILES -->
+      <section id="tab-cfiles" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">My Files</div><div class="page-sub">Download your project deliverables — Premium files require payment</div></div>
+        </div>
+        <div class="alert alert-stripe mb16" id="c-locked-alert">
+          <span>🔒</span><div><strong>Payment Required:</strong> <span id="c-locked-count">2</span> file(s) are locked. Click "Pay to Unlock" to gain instant access via Stripe.</div>
+        </div>
+        <div id="client-file-list"></div>
+      </section>
+
+      <!-- CLIENT INVOICES -->
+      <section id="tab-cinvoices" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Invoices</div><div class="page-sub">Your billing history and outstanding payments</div></div>
+        </div>
+        <div class="card" id="c-invoice-table"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     MODALS
+═══════════════════════════════════ -->
+
+<!-- Progress Modal -->
+<div class="overlay hidden" id="modal-progress">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3>📊 Update Project Progress</h3>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px" id="prog-modal-sub">Brand Identity v2 — TechCorp</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-progress')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="prog-wrap mb16">
+        <div class="prog-labels"><span>Progress</span><span class="val" id="prog-modal-val">68%</span></div>
+        <div class="prog-track lg"><div class="prog-fill" id="prog-modal-fill" style="width:68%"></div></div>
+      </div>
+      <input type="range" min="0" max="100" value="68" id="prog-slider" oninput="updateProgSlider(this.value)" style="width:100%;accent-color:var(--primary);cursor:pointer;margin-bottom:16px" />
+      <div class="field"><label>Status Note (sent to client)</label><input type="text" id="prog-note" placeholder="e.g. Brand guidelines complete, moving to final assets…" /></div>
+      <div class="alert alert-info" style="font-size:12px">
+        <span>📧</span><div>Saving will <strong>automatically email the client</strong>: "Your project has been updated."</div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn btn-success" style="flex:1" onclick="saveProgress()">💾 Save &amp; Notify Client</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-progress')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Project Modal -->
+<div class="overlay hidden" id="modal-new-project">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📁 New Project</h3>
+      <button class="modal-close" onclick="closeModal('modal-new-project')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Project Name</label><input type="text" id="np-name" placeholder="e.g. Brand Identity v3" /></div>
+      <div class="field"><label>Assign Client</label>
+        <select id="np-client"><option>TechCorp</option><option>Shopify Co.</option><option>StartupXYZ</option></select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Start Date</label><input type="date" id="np-start" /></div>
+        <div class="field"><label>Due Date</label><input type="date" id="np-due" /></div>
+      </div>
+      <div class="field"><label>Description</label><textarea id="np-desc" placeholder="Brief project scope…"></textarea></div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="createProject()">Create Project</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-project')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invite Client Modal -->
+<div class="overlay hidden" id="modal-invite">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>👥 Invite Client</h3>
+      <button class="modal-close" onclick="closeModal('modal-invite')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-stripe mb16">
+        <span>✨</span><div>Client will receive a <strong>magic link email</strong> — no password setup required. Link expires in 15 minutes and is single-use.</div>
+      </div>
+      <div class="field"><label>Client / Company Name</label><input type="text" id="inv-name" placeholder="Acme Corp" /></div>
+      <div class="field"><label>Email Address</label><input type="email" id="inv-email" placeholder="client@company.com" /></div>
+      <div class="field"><label>Assign Project</label>
+        <select id="inv-project"><option>Brand Identity v2</option><option>E-Commerce Redesign</option><option>Mobile App UI Kit</option></select>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="sendInvite()">✉️ Send Magic Link Invite</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-invite')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload File Modal -->
+<div class="overlay hidden" id="modal-upload">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>↑ Upload File to Vault</h3>
+      <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>File Name</label><input type="text" id="uf-name" placeholder="e.g. final_logo.ai" /></div>
+      <div class="field-row">
+        <div class="field"><label>Size</label><input type="text" id="uf-size" placeholder="e.g. 4.2 MB" /></div>
+        <div class="field"><label>Assign to Project</label>
+          <select id="uf-project"><option value="techcorp">Brand Identity v2 (TechCorp)</option><option value="shopifyco">E-Commerce (Shopify Co.)</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Access Type</label>
+        <select id="uf-locked">
+          <option value="false">Free — Client can download immediately</option>
+          <option value="true">Premium — Locked until payment</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="confirmUpload()">↑ Add to Vault</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-upload')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plan Upgrade Modal (for gated features) -->
+<div class="overlay hidden" id="modal-upgrade">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h3 id="upgrade-modal-title">⚡ Upgrade Required</h3>
+      <button class="modal-close" onclick="closeModal('modal-upgrade')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;padding:10px 0 20px">
+        <div style="font-size:48px;margin-bottom:12px" id="upgrade-modal-icon">🔒</div>
+        <p id="upgrade-modal-msg" style="color:var(--muted);font-size:14px;line-height:1.7"></p>
+      </div>
+      <div class="grid2" style="gap:10px">
+        <div style="border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">PRO</div>
+          <div style="font-size:22px;font-weight:900">€30<span style="font-size:13px;font-weight:400;color:var(--muted)">/mo</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">Unlimited clients, payment locks, email notifications</div>
+        </div>
+        <div style="border:1px solid rgba(6,182,212,.3);border-radius:10px;padding:14px;text-align:center;background:rgba(6,182,212,.05)">
+          <div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:4px">AGENCY</div>
+          <div style="font-size:22px;font-weight:900">€150<span style="font-size:13px;font-weight:400;color:var(--muted)">/mo</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">Everything in Pro + white-label branding</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="closeModal('modal-upgrade');adminTab('billing',null)">View Plans →</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-upgrade')">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- STRIPE CHECKOUT MODAL -->
+<div class="overlay hidden" id="modal-stripe">
+  <div class="modal" style="max-width:480px;position:relative">
+    <div class="processing-overlay hidden" id="stripe-processing">
+      <div class="spinner"></div>
+      <p>Processing payment with Stripe…</p>
+    </div>
+    <div class="success-overlay hidden" id="stripe-success">
+      <div class="success-check">✓</div>
+      <h3>Payment Successful!</h3>
+      <p>Stripe webhook received. Files are being unlocked automatically…</p>
+      <button class="btn btn-success" onclick="finalizePayment()">View Unlocked Files →</button>
+    </div>
+    <div class="stripe-header">
+      <div class="stripe-logo"><span class="sl">stripe</span> <span>Checkout</span></div>
+      <div class="test-mode-pill">TEST MODE</div>
+    </div>
+    <div class="stripe-amount">
+      <div class="amt" id="stripe-total">€0.00</div>
+      <div class="desc" id="stripe-desc">Premium Files — Shadow Portal</div>
+    </div>
+    <div class="stripe-form">
+      <div class="test-cards">
+        <h5>🧪 Test Card Numbers</h5>
+        <div class="test-card-row"><span class="tcn">4242 4242 4242 4242</span><span class="tcd">✅ Always succeeds</span><button class="use-card" onclick="useTestCard('4242 4242 4242 4242')">Use</button></div>
+        <div class="test-card-row"><span class="tcn">4000 0000 0000 9995</span><span class="tcd">❌ Always declines</span><button class="use-card" onclick="useTestCard('4000 0000 0000 9995')">Use</button></div>
+        <div class="test-card-row"><span class="tcn">4000 0025 0000 3155</span><span class="tcd">🔐 Requires 3DS auth</span><button class="use-card" onclick="useTestCard('4000 0025 0000 3155')">Use</button></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="sf-label">Card Number</label>
+        <input class="sf-input" id="sf-card" placeholder="1234 1234 1234 1234" maxlength="19" oninput="formatCard(this)" />
+      </div>
+      <div class="sf-row">
+        <div><label class="sf-label">Expiry</label><input class="sf-input" id="sf-exp" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)" /></div>
+        <div><label class="sf-label">CVC</label><input class="sf-input" id="sf-cvc" placeholder="CVC" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" /></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <label class="sf-label">Name on Card</label>
+        <input class="sf-input" id="sf-name" placeholder="Full name" />
+      </div>
+    </div>
+    <div style="padding:0 24px 22px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-stripe btn-full btn-lg" onclick="processStripePayment()">
+        <span>🔒</span> Pay <span id="stripe-pay-btn-amount">€0.00</span> with Stripe
+      </button>
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-stripe')">Cancel</button>
+      <div style="text-align:center;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:5px">
+        <span>🔐</span> Secured by Stripe · TLS encrypted · PCI DSS compliant
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     JAVASCRIPT ENGINE
+════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════ */
+const SUPERADMIN_EMAIL = 'alex@shadowstudio.io'; // 👈 Change this to your real email
+
+/* ═══════════════════════════════════════
+   USER ACCOUNTS (simulated DB in localStorage)
+═══════════════════════════════════════ */
+function getUsers() {
+  return JSON.parse(localStorage.getItem('sp_users') || '[]');
+}
+function saveUsers(users) {
+  localStorage.setItem('sp_users', JSON.stringify(users));
+}
+function findUser(email) {
+  return getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
+}
+function createUser(fname, lname, email, password, studio) {
+  const users = getUsers();
+  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) return null;
+  const user = {
+    id: 'u_' + Date.now(),
+    fname, lname, email, password, studio,
+    plan: 'free',
+    isAdmin: false,
+    isSuperAdmin: email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase(),
+    createdAt: new Date().toISOString()
+  };
+  users.push(user);
+  saveUsers(users);
+  return user;
+}
+function updateUserPlan(email, plan) {
+  const users = getUsers();
+  const u = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (u) { u.plan = plan; saveUsers(users); return true; }
+  return false;
+}
+function grantAdminAccess(email, grant) {
+  const users = getUsers();
+  const u = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (u) {
+    u.isAdmin = grant;
+    saveUsers(users);
+    // If we're removing admin access and they were logged in as admin, update session
+    if (state.currentUser && state.currentUser.email.toLowerCase() === email.toLowerCase()) {
+      state.currentUser.isAdmin = grant;
+      saveState();
+    }
+    return true;
+  }
+  return false;
+}
+
+/* ═══════════════════════════════════════
+   SESSION STATE
+═══════════════════════════════════════ */
+const DEFAULT_STATE = {
+  currentUser: null,   // { email, fname, plan, isSuperAdmin }
+  currentRole: null,   // 'admin' | 'client'
+  currentClient: null, // client ID string
+  branding: { logo: null, name: '', primary: '#7c3aed', accent: '#a855f7', removePowered: true, domain: '' },
+  files: [
+    { id:'f1', name:'logo_final.ai',        ext:'ai',  size:'4.2 MB',  type:'Delivered', premium:false, locked:false, project:'techcorp' },
+    { id:'f2', name:'brand_guidelines.pdf', ext:'pdf', size:'12.7 MB', type:'Delivered', premium:false, locked:false, project:'techcorp' },
+    { id:'f3', name:'source_files.zip',     ext:'zip', size:'234 MB',  type:'Premium',   premium:true,  locked:true,  project:'techcorp' },
+    { id:'f4', name:'social_assets.zip',    ext:'zip', size:'89 MB',   type:'Premium',   premium:true,  locked:true,  project:'techcorp' },
+    { id:'f5', name:'mockups_v2.fig',       ext:'fig', size:'18 MB',   type:'Delivered', premium:false, locked:false, project:'techcorp' }
+  ],
+  projects: [
+    { id:'p1', name:'Brand Identity v2',   client:'TechCorp',  clientId:'techcorp',  progress:68, status:'active', due:'2025-04-30' },
+    { id:'p2', name:'E-Commerce Redesign', client:'Shopify Co.',clientId:'shopifyco', progress:40, status:'review', due:'2025-05-15' }
+  ],
+  payments: [
+    { id:'pay1', client:'TechCorp',   amount:1200, files:2, status:'paid',    date:'2025-04-10' },
+    { id:'pay2', client:'Shopify Co.',amount:850,  files:0, status:'pending', date:'2025-04-15' },
+    { id:'pay3', client:'StartupXYZ', amount:2400, files:5, status:'paid',    date:'2025-04-08' },
+    { id:'pay4', client:'LawFirm LLC',amount:600,  files:0, status:'overdue', date:'2025-03-30' }
+  ],
+  emailLog: [
+    { type:'magic',   subject:'Magic Link Sent',                    to:'john@techcorp.io',   time:'2m ago',  status:'delivered' },
+    { type:'update',  subject:'Project Update: Brand Identity v2',  to:'john@techcorp.io',   time:'1h ago',  status:'delivered' },
+    { type:'payment', subject:'Payment Confirmed — Files Unlocked', to:'sara@shopify.co',    time:'3h ago',  status:'delivered' },
+    { type:'file',    subject:'New Files Available for Download',    to:'startup@xyz.io',     time:'1d ago',  status:'delivered' }
+  ]
+};
+
+let state = (() => {
+  try { return JSON.parse(localStorage.getItem('sp_state')) || DEFAULT_STATE; }
+  catch(e) { return DEFAULT_STATE; }
+})();
+
+function saveState() {
+  localStorage.setItem('sp_state', JSON.stringify(state));
+}
+
+/* ═══════════════════════════════════════
+   PLAN HELPERS
+═══════════════════════════════════════ */
+function currentPlan() {
+  return (state.currentUser && state.currentUser.plan) || 'free';
+}
+function isSuperAdmin() {
+  return state.currentUser && state.currentUser.isSuperAdmin;
+}
+function planAllows(feature) {
+  const p = currentPlan();
+  if (isSuperAdmin()) return true; // super admin has all
+  const rules = {
+    unlimited_clients: ['pro','agency'],
+    payment_locked_files: ['pro','agency'],
+    email_notifications: ['pro','agency'],
+    branding: ['agency'],
+    unlimited_projects: ['pro','agency']
+  };
+  return rules[feature] ? rules[feature].includes(p) : true;
+}
+function checkPlanAndAct(feature, fn) {
+  const msgs = {
+    projects: { icon:'📁', title:'Upgrade for Unlimited Projects', msg:'The Free plan is limited to 2 projects. Upgrade to Pro (€30/mo) for unlimited projects and payment-locked file delivery.' },
+    clients:  { icon:'👥', title:'Upgrade for Unlimited Clients',  msg:'The Free plan supports up to 2 clients. Upgrade to Pro (€30/mo) for unlimited clients and full project management.' },
+    branding: { icon:'🎨', title:'Agency Plan Required',           msg:'White-label branding requires the Agency plan (€150/mo). Upload your logo, set brand colors, and remove Shadow branding entirely.' },
+    payments: { icon:'💳', title:'Pro Plan Required',              msg:'Payment-locked file delivery requires the Pro plan (€30/mo). Lock premium files behind Stripe payments — automated unlock on success.' }
+  };
+  const featureMap = {
+    projects: 'unlimited_projects',
+    clients:  'unlimited_clients',
+    branding: 'branding',
+    payments: 'payment_locked_files'
+  };
+  const planFeature = featureMap[feature];
+  if (!planFeature || planAllows(planFeature)) {
+    fn();
+    return;
+  }
+  const m = msgs[feature] || { icon:'🔒', title:'Upgrade Required', msg:'This feature requires a higher plan.' };
+  document.getElementById('upgrade-modal-icon').innerText = m.icon;
+  document.getElementById('upgrade-modal-title').innerText = m.title;
+  document.getElementById('upgrade-modal-msg').innerText = m.msg;
+  document.getElementById('modal-upgrade').classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function adminTab(tabId, el) {
+  document.querySelectorAll('#page-admin section').forEach(s => s.classList.add('hidden'));
+  document.getElementById('tab-' + tabId).classList.remove('hidden');
+  if (el) {
+    document.querySelectorAll('#page-admin .sidebar .nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+
+function clientTab(tabId, el) {
+  document.querySelectorAll('#page-client section').forEach(s => s.classList.add('hidden'));
+  document.getElementById('tab-' + tabId).classList.remove('hidden');
+  if (el) {
+    document.querySelectorAll('#page-client .nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+
+function goHome() {
+  if (state.currentUser) {
+    if (state.currentRole === 'admin') showPage('admin');
+    else showPage('login');
+  } else if (state.currentClient) {
+    showPage('client');
+  } else {
+    showPage('login');
+  }
+}
+
+/* ═══════════════════════════════════════
+   LOGIN MODE SWITCHER
+═══════════════════════════════════════ */
+function initLoginPage() {
+  // Decide whether to show the Admin tab
+  // Show it only if the stored email is superadmin or a granted admin
+  const lastEmail = localStorage.getItem('sp_last_email') || '';
+  const user = lastEmail ? findUser(lastEmail) : null;
+  const showAdminTab = user && (user.isAdmin || user.isSuperAdmin ||
+    user.email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase());
+  document.getElementById('tab-loginadmin').classList.toggle('hidden', !showAdminTab);
+
+  // Default: show Register for new visitors, Log In if they've been here before
+  const hasVisited = !!localStorage.getItem('sp_last_email');
+  setLoginMode(hasVisited ? 'loginuser' : 'register');
+}
+
+function setLoginMode(mode) {
+  // Hide all forms
+  ['admin-login-form','register-form','user-login-form','client-login-form','magic-sent-screen']
+    .forEach(id => document.getElementById(id).classList.add('hidden'));
+
+  // Deactivate all tabs
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+
+  if (mode === 'admin') {
+    document.getElementById('tab-loginadmin').classList.add('active');
+    document.getElementById('admin-login-form').classList.remove('hidden');
+    document.getElementById('login-title').innerText = 'Admin Login';
+    document.getElementById('login-sub').innerText = 'Super admin — full portal control';
+  } else if (mode === 'register') {
+    document.getElementById('tab-register').classList.add('active');
+    document.getElementById('register-form').classList.remove('hidden');
+    document.getElementById('login-title').innerText = 'Create Your Account';
+    document.getElementById('login-sub').innerText = 'Start for free — no credit card required';
+  } else if (mode === 'loginuser') {
+    document.getElementById('tab-loginuser').classList.add('active');
+    document.getElementById('user-login-form').classList.remove('hidden');
+    document.getElementById('login-title').innerText = 'Welcome Back';
+    document.getElementById('login-sub').innerText = 'Sign in to your Shadow Portal account';
+  } else if (mode === 'client') {
+    document.getElementById('tab-client').classList.add('active');
+    document.getElementById('client-login-form').classList.remove('hidden');
+    document.getElementById('login-title').innerText = 'Client Portal';
+    document.getElementById('login-sub').innerText = 'Access your project dashboard';
+  }
+}
+
+// backwards compat
+function setRole(role) { setLoginMode(role === 'admin' ? 'admin' : 'client'); }
+
+/* ═══════════════════════════════════════
+   AUTH: REGISTER
+═══════════════════════════════════════ */
+function doRegister() {
+  const fname  = document.getElementById('reg-fname').value.trim();
+  const lname  = document.getElementById('reg-lname').value.trim();
+  const email  = document.getElementById('reg-email').value.trim();
+  const pw     = document.getElementById('reg-pw').value;
+  const studio = document.getElementById('reg-studio').value.trim();
+  const errEl  = document.getElementById('reg-error');
+  errEl.style.display = 'none';
+
+  if (!fname || !email || !pw) { errEl.innerText = 'Please fill in all required fields.'; errEl.style.display='block'; return; }
+  if (pw.length < 6) { errEl.innerText = 'Password must be at least 6 characters.'; errEl.style.display='block'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.innerText = 'Please enter a valid email address.'; errEl.style.display='block'; return; }
+
+  const user = createUser(fname, lname, email, pw, studio || fname + "'s Studio");
+  if (!user) { errEl.innerText = 'An account with this email already exists.'; errEl.style.display='block'; return; }
+
+  loginAsUser(user);
+  showToast(`Welcome, ${fname}! Your free account is ready.`, 'success');
+}
+
+/* ═══════════════════════════════════════
+   AUTH: ADMIN LOGIN (superadmin / granted admins)
+═══════════════════════════════════════ */
+function doAdminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const pw    = document.getElementById('admin-pw').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  if (!email || !pw) { errEl.classList.add('show'); return; }
+
+  // Superadmin hardcoded credentials
+  if (email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase() && pw === 'admin123') {
+    let user = findUser(email);
+    if (!user) {
+      createUser('Alex', 'Shadow', email, pw, 'Shadow Studio');
+      user = findUser(email);
+      updateUserPlan(email, 'agency');
+      user = findUser(email);
+    }
+    localStorage.setItem('sp_last_email', email.toLowerCase());
+    loginAsUser(user);
+    showToast('Welcome back, Super Admin! 🛡️', 'success');
+    return;
+  }
+
+  // Granted admin login
+  const user = findUser(email);
+  if (!user || user.password !== pw) { errEl.classList.add('show'); return; }
+  if (!user.isAdmin && !user.isSuperAdmin) { errEl.innerText = 'You don\'t have admin access.'; errEl.classList.add('show'); return; }
+  localStorage.setItem('sp_last_email', email.toLowerCase());
+  loginAsUser(user);
+  showToast(`Welcome back, ${user.fname}! 🔑`, 'success');
+}
+
+/* ═══════════════════════════════════════
+   AUTH: REGULAR USER LOGIN
+═══════════════════════════════════════ */
+function doUserLogin() {
+  const email = document.getElementById('user-login-email').value.trim();
+  const pw    = document.getElementById('user-login-pw').value;
+  const errEl = document.getElementById('user-login-error');
+  errEl.classList.remove('show');
+  errEl.innerText = 'Invalid email or password.';
+
+  if (!email || !pw) { errEl.classList.add('show'); return; }
+
+  const user = findUser(email);
+  if (!user || user.password !== pw) { errEl.classList.add('show'); return; }
+
+  localStorage.setItem('sp_last_email', email.toLowerCase());
+  loginAsUser(user);
+  showToast(`Welcome back, ${user.fname}!`, 'success');
+}
+
+function loginAsUser(user) {
+  state.currentUser = {
+    id: user.id,
+    email: user.email,
+    fname: user.fname,
+    lname: user.lname,
+    studio: user.studio,
+    plan: user.plan,
+    isAdmin: user.isAdmin || false,
+    isSuperAdmin: user.email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase()
+  };
+  state.currentRole = 'admin';
+  state.currentClient = null;
+  saveState();
+  updateAdminUI();
+  renderBillingUI();
+  renderAdminFileList();
+  renderPaymentLog();
+  renderEmailLog();
+  showPage('admin');
+}
+
+/* ═══════════════════════════════════════
+   AUTH: CLIENT LOGIN
+═══════════════════════════════════════ */
+function doClientLogin(clientId) {
+  state.currentClient = clientId;
+  state.currentUser = null;
+  state.currentRole = 'client';
+  saveState();
+  showToast('Access granted via Magic Link', 'stripe');
+  renderClientPortal();
+  showPage('client');
+  document.getElementById('nav-auth').classList.remove('hidden');
+  document.getElementById('nav-guest').classList.add('hidden');
+  document.getElementById('nav-role-icon').innerText = '🔗';
+  document.getElementById('nav-role-label').innerText = 'Client';
+  document.getElementById('nav-avatar').innerText = clientId === 'techcorp' ? 'T' : 'S';
+  document.getElementById('nav-plan-badge').className = 'plan-badge-nav';
+  document.getElementById('nav-plan-badge').style.display = 'none';
+}
+
+function logout() {
+  state.currentUser  = null;
+  state.currentClient = null;
+  state.currentRole  = null;
+  saveState();
+  showPage('login');
+  document.getElementById('nav-auth').classList.add('hidden');
+  document.getElementById('nav-guest').classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════
+   MAGIC LINK
+═══════════════════════════════════════ */
+function sendMagicLink() {
+  const email = document.getElementById('client-email').value.trim();
+  if (!email) { showToast('Please enter your email address', 'error'); return; }
+  document.getElementById('ml-email-display').innerText = email;
+  document.getElementById('ml-em-to').innerText = email;
+  document.getElementById('ml-client-name').innerText = email.split('@')[0];
+  document.getElementById('client-login-form').classList.add('hidden');
+  document.getElementById('magic-sent-screen').classList.remove('hidden');
+}
+function resetMagicForm() {
+  document.getElementById('magic-sent-screen').classList.add('hidden');
+  document.getElementById('client-login-form').classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════
+   UI UPDATES
+═══════════════════════════════════════ */
+function updateAdminUI() {
+  const u = state.currentUser;
+  document.getElementById('nav-auth').classList.remove('hidden');
+  document.getElementById('nav-guest').classList.add('hidden');
+  document.getElementById('nav-role-icon').innerText = isSuperAdmin() ? '🛡️' : '🔑';
+  document.getElementById('nav-role-label').innerText = isSuperAdmin() ? 'Super Admin' : 'Admin';
+  document.getElementById('nav-avatar').innerText = u.fname.charAt(0).toUpperCase();
+  const pb = document.getElementById('nav-plan-badge');
+  pb.className = 'plan-badge-nav ' + (isSuperAdmin() ? 'superadmin' : currentPlan());
+  pb.innerText = isSuperAdmin() ? 'SuperAdmin' : currentPlan().charAt(0).toUpperCase() + currentPlan().slice(1);
+  pb.style.display = '';
+  document.getElementById('overview-greeting').innerText = `Dashboard — ${u.fname} ${u.lname || ''}`.trim();
+
+  // Super admin extras
+  if (isSuperAdmin()) {
+    document.getElementById('sidebar-superadmin').classList.remove('hidden');
+    renderUserManagement();
+  } else {
+    document.getElementById('sidebar-superadmin').classList.add('hidden');
+  }
+
+  // Plan-gated UI hints
+  const p = currentPlan();
+  document.getElementById('clients-plan-note').innerText =
+    p === 'free' ? 'Free Plan — up to 2 clients' :
+    p === 'pro'  ? 'Pro Plan — Unlimited clients' : 'Agency Plan — Unlimited clients';
+
+  if (p === 'free') {
+    document.getElementById('clients-limit-notice').classList.remove('hidden');
+    document.getElementById('projects-limit-notice').classList.remove('hidden');
+  } else {
+    document.getElementById('clients-limit-notice').classList.add('hidden');
+    document.getElementById('projects-limit-notice').classList.add('hidden');
+  }
+}
+
+function renderBillingUI() {
+  const p = currentPlan();
+  document.getElementById('current-plan-name').innerText =
+    p === 'free' ? 'Free Plan' : p === 'pro' ? 'Pro Plan — €30/mo' : 'Agency Plan — €150/mo';
+
+  document.getElementById('plan-free').classList.toggle('active-plan', p === 'free');
+  document.getElementById('plan-pro').classList.toggle('active-plan', p === 'pro');
+  document.getElementById('plan-agency').classList.toggle('active-plan', p === 'agency');
+
+  const proBtn = document.getElementById('pro-plan-btn');
+  const agencyBtn = document.getElementById('agency-plan-btn');
+  const proBadge = document.getElementById('pro-badge');
+
+  if (p === 'free') {
+    proBtn.innerText = 'Upgrade to Pro (Test)'; proBtn.disabled = false;
+    agencyBtn.innerText = 'Upgrade to Agency (Test)'; agencyBtn.disabled = false;
+    proBadge.style.display = 'none';
+  } else if (p === 'pro') {
+    proBtn.innerText = 'Current Plan'; proBtn.disabled = true;
+    agencyBtn.innerText = 'Upgrade to Agency (Test)'; agencyBtn.disabled = false;
+    proBadge.style.display = '';
+  } else {
+    proBtn.innerText = 'Downgrade to Pro'; proBtn.disabled = false;
+    agencyBtn.innerText = 'Current Plan'; agencyBtn.disabled = true;
+    proBadge.style.display = 'none';
+  }
+
+  // Show/hide branding gate
+  if (p === 'agency') {
+    document.getElementById('agency-gate').classList.add('hidden');
+    document.getElementById('branding-form').classList.remove('hidden');
+  } else {
+    document.getElementById('agency-gate').classList.remove('hidden');
+    document.getElementById('branding-form').classList.add('hidden');
+  }
+}
+
+/* ═══════════════════════════════════════
+   PLAN SELECTION (simulated)
+═══════════════════════════════════════ */
+function selectPlan(plan) {
+  if (!state.currentUser) return;
+  const oldPlan = currentPlan();
+  if (oldPlan === plan) return;
+
+  updateUserPlan(state.currentUser.email, plan);
+  state.currentUser.plan = plan;
+  saveState();
+
+  renderBillingUI();
+  updateAdminUI();
+
+  const names = { free: 'Free', pro: 'Pro (€30/mo)', agency: 'Agency (€150/mo)' };
+  showToast(`✅ Plan changed to ${names[plan]}`, 'success');
+
+  if (plan === 'agency') {
+    showToast('🎨 White-label branding unlocked!', 'stripe');
+  }
+}
+
+/* ═══════════════════════════════════════
+   FILE VAULT — ADMIN
+═══════════════════════════════════════ */
+const FILE_ICONS = { ai:'🎨', pdf:'📄', zip:'📦', fig:'🖼️', png:'🖼️', mp4:'🎬', default:'📎' };
+
+function renderAdminFileList() {
+  const container = document.getElementById('admin-file-list');
+  if (!container) return;
+  let html = '';
+  state.files.forEach(f => {
+    const icon = FILE_ICONS[f.ext] || FILE_ICONS.default;
+    html += `
+    <div class="file-row ${f.locked ? 'locked-row' : ''}">
+      <div class="file-icon">${icon}</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${f.size} · ${f.type} · ${f.project}</div>
+      </div>
+      <div class="file-actions">
+        <span class="file-type-tag">${f.ext.toUpperCase()}</span>
+        ${f.locked
+          ? `<span class="badge badge-red">🔒 Locked</span>
+             <button class="btn btn-warn btn-xs" onclick="adminUnlockFile('${f.id}')">Unlock</button>`
+          : `<span class="badge badge-green">✓ Unlocked</span>
+             <button class="btn btn-ghost btn-xs" onclick="adminLockFile('${f.id}')">Lock</button>`
+        }
+        <button class="btn btn-danger btn-xs" onclick="deleteFile('${f.id}')">✕</button>
+      </div>
+    </div>`;
+  });
+  if (!html) html = '<div style="text-align:center;padding:40px;color:var(--muted)">No files uploaded yet. Click "Upload Files" to add your first deliverable.</div>';
+  container.innerHTML = html;
+
+  // Update stats
+  const locked = state.files.filter(f => f.locked).length;
+  const statEl = document.getElementById('stat-locked');
+  if (statEl) statEl.innerText = locked;
+}
+
+function adminUnlockFile(id) {
+  const f = state.files.find(f => f.id === id);
+  if (f) { f.locked = false; f.type = 'Unlocked'; saveState(); renderAdminFileList(); showToast('File unlocked for client', 'success'); }
+}
+function adminLockFile(id) {
+  const f = state.files.find(f => f.id === id);
+  if (f) { f.locked = true; f.type = 'Premium'; saveState(); renderAdminFileList(); showToast('File locked — client must pay to access', 'info'); }
+}
+function deleteFile(id) {
+  state.files = state.files.filter(f => f.id !== id);
+  saveState(); renderAdminFileList(); showToast('File removed from vault', 'info');
+}
+
+function simulateUpload() {
+  document.getElementById('modal-upload').classList.remove('hidden');
+}
+function confirmUpload() {
+  const name    = document.getElementById('uf-name').value.trim();
+  const size    = document.getElementById('uf-size').value.trim() || '1 MB';
+  const project = document.getElementById('uf-project').value;
+  const locked  = document.getElementById('uf-locked').value === 'true';
+  if (!name) { showToast('Please enter a file name', 'error'); return; }
+  const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : 'file';
+  state.files.push({
+    id: 'f' + Date.now(), name, ext, size,
+    type: locked ? 'Premium' : 'Delivered',
+    premium: locked, locked, project
+  });
+  saveState();
+  closeModal('modal-upload');
+  renderAdminFileList();
+  showToast(`📁 ${name} added to File Vault`, 'success');
+  addEmailLog('file', `New File Available: ${name}`, 'john@techcorp.io');
+}
+
+/* ═══════════════════════════════════════
+   PAYMENT LOG
+═══════════════════════════════════════ */
+function renderPaymentLog() {
+  const el = document.getElementById('payment-log');
+  if (!el) return;
+  const statusBadge = s => s === 'paid' ? 'badge-green' : s === 'pending' ? 'badge-yellow' : 'badge-red';
+  let html = '<table><thead><tr><th>Client</th><th>Amount</th><th>Files</th><th>Date</th><th>Status</th></tr></thead><tbody>';
+  state.payments.forEach(p => {
+    html += `<tr>
+      <td><strong>${p.client}</strong></td>
+      <td>€${p.amount.toLocaleString()}</td>
+      <td>${p.files ? p.files + ' unlocked' : 'Locked'}</td>
+      <td>${p.date}</td>
+      <td><span class="badge ${statusBadge(p.status)}">${p.status.charAt(0).toUpperCase()+p.status.slice(1)}</span></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════
+   EMAIL LOG
+═══════════════════════════════════════ */
+function addEmailLog(type, subject, to) {
+  state.emailLog.unshift({ type, subject, to, time: 'Just now', status: 'delivered' });
+  saveState();
+  renderEmailLog();
+  const badge = document.getElementById('email-badge');
+  if (badge) badge.innerText = state.emailLog.length;
+}
+function renderEmailLog() {
+  const el = document.getElementById('email-log-list');
+  if (!el) return;
+  const icons = { magic:'✉️', update:'📊', payment:'✅', file:'📂' };
+  let html = '';
+  state.emailLog.forEach(e => {
+    html += `<div class="email-log-item">
+      <div class="el-icon ${e.type}">${icons[e.type] || '📧'}</div>
+      <div class="el-info" style="flex:1">
+        <div class="el-subject">${e.subject}</div>
+        <div class="el-to">To: ${e.to} · <span class="el-time">${e.time}</span></div>
+      </div>
+      <div class="el-status"><span class="badge badge-green">✓ ${e.status}</span></div>
+    </div>`;
+  });
+  el.innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--muted)">No emails sent yet.</div>';
+}
+
+/* ═══════════════════════════════════════
+   CLIENT PORTAL RENDER
+═══════════════════════════════════════ */
+const CLIENT_DATA = {
+  techcorp: { name:'TechCorp', project:'Brand Identity v2', progress:68, milestones:[
+    { label:'Discovery & Brief', done:true },
+    { label:'Logo Concepts (3x)', done:true },
+    { label:'Brand Guidelines', done:true },
+    { label:'Final Asset Delivery', done:false },
+    { label:'Handoff & Documentation', done:false }
+  ]},
+  shopifyco: { name:'Shopify Co.', project:'E-Commerce Redesign', progress:40, milestones:[
+    { label:'UX Audit', done:true },
+    { label:'Wireframes', done:true },
+    { label:'Visual Design', done:false },
+    { label:'Dev Handoff', done:false },
+    { label:'Final QA', done:false }
+  ]}
+};
+
+function renderClientPortal() {
+  const cid = state.currentClient;
+  const cd = CLIENT_DATA[cid] || CLIENT_DATA.techcorp;
+  const files = state.files.filter(f => f.project === cid);
+  const locked = files.filter(f => f.locked).length;
+
+  document.getElementById('c-client-name').innerText = cd.name;
+  document.getElementById('c-project-name').innerText = cd.project;
+  document.getElementById('c-prog-val').innerText = cd.progress + '%';
+  document.getElementById('c-prog-fill').style.width = cd.progress + '%';
+  document.getElementById('c-file-badge').innerText = `${files.length} files total`;
+  document.getElementById('c-locked-badge').innerText = `${locked} locked`;
+
+  // Branding
+  const b = state.branding;
+  document.getElementById('c-studio-name').innerText = b.name || 'Shadow Studio';
+
+  // Milestones
+  let msHtml = '';
+  cd.milestones.forEach(m => {
+    msHtml += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px">
+      <span style="font-size:16px">${m.done ? '✅' : '⭕'}</span>
+      <span style="${m.done ? 'color:var(--success);font-weight:600' : 'color:var(--muted)'}">${m.label}</span>
+    </div>`;
+  });
+  document.getElementById('c-milestones').innerHTML = msHtml;
+
+  // File summary
+  let sumHtml = '';
+  files.forEach(f => {
+    sumHtml += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px">
+      <span>${f.locked ? '🔒' : '✅'}</span>
+      <span style="flex:1">${f.name}</span>
+      <span class="badge ${f.locked ? 'badge-red' : 'badge-green'}">${f.locked ? 'Locked' : 'Ready'}</span>
+    </div>`;
+  });
+  document.getElementById('c-file-summary').innerHTML = sumHtml;
+
+  // Payment prompt
+  const ppEl = document.getElementById('c-payment-prompt');
+  ppEl.innerHTML = locked > 0
+    ? `<div class="alert alert-stripe" style="margin-top:12px">
+        <span>🔒</span><div>${locked} premium file(s) locked. <button class="btn btn-stripe btn-xs" onclick="clientTab('cfiles',null);document.querySelector('[data-ctab=cfiles]').click()">Pay to Unlock →</button></div>
+       </div>`
+    : `<div class="alert alert-success" style="margin-top:12px"><span>✅</span><div>All files are unlocked and ready for download!</div></div>`;
+
+  // Locked alert
+  if (locked === 0) document.getElementById('c-locked-alert').classList.add('hidden');
+  else { document.getElementById('c-locked-alert').classList.remove('hidden'); document.getElementById('c-locked-count').innerText = locked; }
+
+  // Render file list
+  renderClientFileList();
+
+  // Invoice table
+  renderClientInvoices();
+}
+
+function renderClientFileList() {
+  const cid = state.currentClient;
+  const clientFiles = state.files.filter(f => f.project === cid);
+  let html = '';
+  clientFiles.forEach(f => {
+    const icon = FILE_ICONS[f.ext] || FILE_ICONS.default;
+    html += `<div class="file-row ${f.locked ? 'locked-row' : ''}">
+      <div class="file-icon">${icon}</div>
+      <div class="file-info">
+        <div class="file-name">${f.name}</div>
+        <div class="file-meta">${f.size} · ${f.type}</div>
+      </div>
+      <div class="file-actions">
+        ${f.locked
+          ? `<button class="btn btn-stripe btn-sm" onclick="openStripe('${f.id}',150)">🔒 Pay €150 to Unlock</button>`
+          : `<button class="btn btn-success btn-sm" onclick="showToast('Downloading ${f.name}…','success')">📥 Download</button>`
+        }
+      </div>
+    </div>`;
+  });
+  document.getElementById('client-file-list').innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--muted)">No files have been uploaded yet.</div>';
+}
+
+function renderClientInvoices() {
+  const el = document.getElementById('c-invoice-table');
+  if (!el) return;
+  el.innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Invoice</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <tr><td><strong>INV-001</strong></td><td>€1,200</td><td>Apr 10, 2025</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-ghost btn-xs" onclick="showToast('Downloading invoice PDF…','info')">📄 PDF</button></td></tr>
+      <tr><td><strong>INV-002</strong></td><td>€850</td><td>Apr 15, 2025</td><td><span class="badge badge-yellow">Pending</span></td><td><button class="btn btn-stripe btn-xs" onclick="openStripe('inv002',850)">Pay Now</button></td></tr>
+    </tbody>
+  </table></div>`;
+}
+
+/* ═══════════════════════════════════════
+   PROGRESS MODAL
+═══════════════════════════════════════ */
+let _progProject = '', _progClient = '';
+function openProgressModal(project, client, value) {
+  _progProject = project; _progClient = client;
+  document.getElementById('prog-modal-sub').innerText = `${project} — ${client}`;
+  updateProgSlider(value);
+  document.getElementById('prog-slider').value = value;
+  document.getElementById('modal-progress').classList.remove('hidden');
+}
+function updateProgSlider(val) {
+  document.getElementById('prog-modal-val').innerText = val + '%';
+  document.getElementById('prog-modal-fill').style.width = val + '%';
+}
+function saveProgress() {
+  const val  = document.getElementById('prog-slider').value;
+  const note = document.getElementById('prog-note').value;
+  // Update matching project
+  const proj = state.projects.find(p => p.name === _progProject);
+  if (proj) { proj.progress = parseInt(val); saveState(); }
+  closeModal('modal-progress');
+  renderAdminFileList();
+  showToast(`✅ Progress updated to ${val}% — client notified`, 'success');
+  addEmailLog('update', `Project Update: ${_progProject} (${val}%)`, 'client@example.com');
+}
+
+/* ═══════════════════════════════════════
+   NEW PROJECT
+═══════════════════════════════════════ */
+function openNewProject() {
+  document.getElementById('modal-new-project').classList.remove('hidden');
+}
+function createProject() {
+  const name   = document.getElementById('np-name').value.trim();
+  const client = document.getElementById('np-client').value;
+  if (!name) { showToast('Please enter a project name', 'error'); return; }
+  const p = { id:'p_'+Date.now(), name, client, clientId: client.toLowerCase().replace(/\W/g,''), progress:0, status:'active', due: document.getElementById('np-due').value || '' };
+  state.projects.push(p);
+  saveState();
+  closeModal('modal-new-project');
+  document.getElementById('np-name').value = '';
+  showToast(`📁 Project "${name}" created for ${client}`, 'success');
+}
+
+/* ═══════════════════════════════════════
+   INVITE CLIENT
+═══════════════════════════════════════ */
+function openInviteModal() {
+  document.getElementById('modal-invite').classList.remove('hidden');
+}
+function sendInvite() {
+  const name  = document.getElementById('inv-name').value.trim();
+  const email = document.getElementById('inv-email').value.trim();
+  if (!name || !email) { showToast('Please fill in name and email', 'error'); return; }
+  closeModal('modal-invite');
+  showToast(`✉️ Magic link sent to ${email}`, 'success');
+  addEmailLog('magic', `Magic Link Sent to ${name}`, email);
+  document.getElementById('inv-name').value = '';
+  document.getElementById('inv-email').value = '';
+}
+
+/* ═══════════════════════════════════════
+   STRIPE SIMULATION
+═══════════════════════════════════════ */
+let pendingUnlockId = null;
+
+function openStripe(fileId, amount) {
+  pendingUnlockId = fileId;
+  document.getElementById('stripe-total').innerText = '€' + amount;
+  document.getElementById('stripe-pay-btn-amount').innerText = '€' + amount;
+  // Reset state
+  document.getElementById('stripe-processing').classList.add('hidden');
+  document.getElementById('stripe-success').classList.add('hidden');
+  document.getElementById('sf-card').value = '';
+  document.getElementById('sf-exp').value = '';
+  document.getElementById('sf-cvc').value = '';
+  document.getElementById('sf-name').value = '';
+  document.getElementById('modal-stripe').classList.remove('hidden');
+}
+
+function processStripePayment() {
+  const card = document.getElementById('sf-card').value.replace(/\s/g,'');
+  const exp  = document.getElementById('sf-exp').value;
+  const cvc  = document.getElementById('sf-cvc').value;
+  const name = document.getElementById('sf-name').value.trim();
+
+  if (!card || card.length < 16 || !exp || !cvc || !name) {
+    showToast('Please fill in all card details', 'error');
+    return;
+  }
+
+  // Simulate decline for the decline test card
+  if (card === '4000000000009995') {
+    document.getElementById('stripe-processing').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('stripe-processing').classList.add('hidden');
+      showToast('❌ Card declined. Please try a different card.', 'error');
+    }, 2000);
+    return;
+  }
+
+  document.getElementById('stripe-processing').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('stripe-processing').classList.add('hidden');
+    document.getElementById('stripe-success').classList.remove('hidden');
+  }, 2200);
+}
+
+function finalizePayment() {
+  // Unlock the file
+  const file = state.files.find(f => f.id === pendingUnlockId);
+  if (file) { file.locked = false; file.type = 'Unlocked'; }
+  // Also try unlocking by invoice ID convention
+  saveState();
+  closeModal('modal-stripe');
+  document.getElementById('stripe-success').classList.add('hidden');
+  if (state.currentRole === 'client') {
+    renderClientPortal();
+  } else {
+    renderAdminFileList();
+  }
+  showToast('🎉 Payment confirmed! Files unlocked.', 'success');
+  addEmailLog('payment', 'Payment Confirmed — Files Unlocked', 'client@example.com');
+}
+
+function useTestCard(number) {
+  document.getElementById('sf-card').value = number;
+  document.getElementById('sf-exp').value = '12 / 28';
+  document.getElementById('sf-cvc').value = '123';
+  document.getElementById('sf-name').value = 'Test User';
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'');
+  if (v.length >= 2) v = v.substring(0,2) + ' / ' + v.substring(2,4);
+  input.value = v;
+}
+
+/* ═══════════════════════════════════════
+   BRANDING
+═══════════════════════════════════════ */
+function simulateAgencyUpgrade() {
+  selectPlan('agency');
+}
+
+function saveBranding() {
+  const name    = document.getElementById('brand-name').value.trim();
+  const primary = document.getElementById('color-primary').value;
+  const accent  = document.getElementById('color-accent').value;
+
+  state.branding.name    = name;
+  state.branding.primary = primary;
+  state.branding.accent  = accent;
+
+  applyBranding();
+  saveState();
+  showToast('✅ Branding applied globally', 'success');
+}
+
+function applyBranding() {
+  const b = state.branding;
+  if (b.primary) {
+    document.documentElement.style.setProperty('--brand', b.primary);
+    document.documentElement.style.setProperty('--primary', b.primary);
+  }
+  if (b.accent) {
+    document.documentElement.style.setProperty('--brand-l', b.accent);
+    document.documentElement.style.setProperty('--primary-l', b.accent);
+  }
+  if (b.name) {
+    document.getElementById('nav-logo-name').innerText = b.name.replace(/\./g,'') + '.';
+  }
+}
+
+function syncColor(which) {
+  const val = document.getElementById('color-' + which).value;
+  document.getElementById('hex-' + which).value = val;
+  updatePreview();
+}
+function syncHex(which) {
+  const val = document.getElementById('hex-' + which).value;
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById('color-' + which).value = val;
+    updatePreview();
+  }
+}
+function updatePreview() {
+  const name = document.getElementById('brand-name').value || 'Your Studio';
+  const col  = document.getElementById('color-primary').value;
+  const col2 = document.getElementById('color-accent').value;
+  document.getElementById('preview-name').innerText = name;
+  document.getElementById('preview-logo-text').innerText = name.charAt(0).toUpperCase();
+  document.getElementById('preview-logo').style.background = `linear-gradient(135deg,${col},${col2})`;
+  document.getElementById('preview-btn').style.background = `linear-gradient(135deg,${col},${col2})`;
+  document.getElementById('preview-prog').style.background = `linear-gradient(90deg,${col},${col2})`;
+  const removePowered = document.getElementById('remove-powered').checked;
+  document.getElementById('preview-footer').style.display = removePowered ? 'none' : '';
+}
+
+function triggerLogoUpload() {
+  document.getElementById('logo-file-input').click();
+}
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Logo must be under 2 MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const data = ev.target.result;
+    state.branding.logo = data;
+    document.getElementById('logo-preview-img').src = data;
+    document.getElementById('logo-preview').style.display = 'flex';
+    document.getElementById('upload-zone').style.display = 'none';
+    // Apply to all logo spots
+    ['nav-logo-img','login-logo-img','ml-em-logo-img'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.src = data; el.style.display = ''; }
+    });
+    saveState();
+    showToast('Logo uploaded!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+function removeLogo() {
+  state.branding.logo = null;
+  saveState();
+  document.getElementById('logo-preview').style.display = 'none';
+  document.getElementById('upload-zone').style.display = '';
+  ['nav-logo-img','login-logo-img','ml-em-logo-img'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.src = ''; el.style.display = 'none'; }
+  });
+  showToast('Logo removed', 'info');
+}
+
+/* ═══════════════════════════════════════
+   SUPER ADMIN: USER MANAGEMENT
+═══════════════════════════════════════ */
+function renderUserManagement() {
+  const users = getUsers();
+  const el = document.getElementById('user-management-list');
+  const countEl = document.getElementById('user-count-label');
+  if (!el) return;
+  if (countEl) countEl.innerText = `${users.length} registered user${users.length !== 1 ? 's' : ''}`;
+
+  if (users.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No registered users yet. Users appear here after signing up.</div>';
+    return;
+  }
+
+  const planColors = { free:'badge-gray', pro:'badge-purple', agency:'badge-blue' };
+
+  let html = '';
+  users.forEach(u => {
+    const isSuper = u.email.toLowerCase() === SUPERADMIN_EMAIL.toLowerCase();
+    const adminOn = u.isAdmin || isSuper;
+    html += `<div class="user-row">
+      <div class="user-avatar" style="${adminOn ? 'background:linear-gradient(135deg,#ef4444,#f87171)' : ''}">${(u.fname||'?').charAt(0).toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${u.fname} ${u.lname||''} ${isSuper ? '<span style="font-size:11px;color:#f87171">🛡️ Super Admin</span>' : u.isAdmin ? '<span style="font-size:11px;color:var(--warn)">🔑 Admin</span>' : ''}</div>
+        <div class="user-email">${u.email} · ${u.studio||'—'} · Joined ${new Date(u.createdAt).toLocaleDateString()}</div>
+      </div>
+      <div class="user-actions" style="gap:8px">
+        <span class="badge ${planColors[u.plan]||'badge-gray'}">${(u.plan||'free').toUpperCase()}</span>
+        ${isSuper ? '<span style="font-size:11px;color:var(--muted)">Owner</span>' : `
+        <!-- Admin toggle -->
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--muted)">
+          <input type="checkbox" ${u.isAdmin ? 'checked' : ''}
+            style="width:14px;height:14px;accent-color:var(--danger);cursor:pointer"
+            onchange="toggleAdminAccess('${u.email}', this.checked)" />
+          Admin
+        </label>
+        <!-- Plan select -->
+        <select style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:5px 8px;color:var(--text);font-size:12px;cursor:pointer" onchange="superAdminSetPlan('${u.email}',this.value)">
+          <option value="free" ${u.plan==='free'?'selected':''}>Free</option>
+          <option value="pro" ${u.plan==='pro'?'selected':''}>Pro</option>
+          <option value="agency" ${u.plan==='agency'?'selected':''}>Agency</option>
+        </select>`}
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function toggleAdminAccess(email, grant) {
+  grantAdminAccess(email, grant);
+  const user = findUser(email);
+  const name = user ? user.fname : email;
+  showToast(grant ? `🔑 ${name} is now an Admin` : `🚫 Admin access removed from ${name}`, grant ? 'success' : 'info');
+  renderUserManagement();
+}
+
+function superAdminSetPlan(email, plan) {
+  updateUserPlan(email, plan);
+  const user = findUser(email);
+  const name = user ? user.fname : email;
+  showToast(`✅ ${name} → ${plan.toUpperCase()} plan`, 'success');
+  renderUserManagement();
+}
+
+/* ═══════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════ */
+function showToast(msg, type='info') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  const icons = { success:'✅', error:'❌', info:'ℹ️', stripe:'⚡' };
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span> ${msg}`;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(20px)'; t.style.transition='all .3s'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+/* ═══════════════════════════════════════
+   INITIALISATION
+═══════════════════════════════════════ */
+window.onload = () => {
+  // Apply saved branding
+  if (state.branding && state.branding.primary) applyBranding();
+
+  // Restore session if user was logged in
+  if (state.currentUser) {
+    // Re-validate against stored users
+    const storedUser = findUser(state.currentUser.email);
+    if (storedUser) {
+      state.currentUser.plan = storedUser.plan; // always sync plan from DB
+      loginAsUser(storedUser);
+      return;
+    }
+    // User not found in DB — clear session
+    state.currentUser = null;
+    saveState();
+  }
+  if (state.currentClient) {
+    renderClientPortal();
+    showPage('client');
+    document.getElementById('nav-auth').classList.remove('hidden');
+    document.getElementById('nav-guest').classList.add('hidden');
+    document.getElementById('nav-role-label').innerText = 'Client';
+    document.getElementById('nav-avatar').innerText = state.currentClient === 'techcorp' ? 'T' : 'S';
+    return;
+  }
+  showPage('login');
+  initLoginPage();
+};
+</script>
+</body>
+</html>
