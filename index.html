@@ -6,9 +6,9 @@
 <title>Shadow Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js" crossorigin></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -33,9 +33,20 @@ input,select,textarea,button{font-family:var(--font)}
 </style>
 </head>
 <body>
+<div id="loading-screen" style="position:fixed;inset:0;background:#070710;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px">
+  <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;animation:pulse 1.5s ease-in-out infinite">S</div>
+  <div style="color:#a29bfe;font-size:14px;font-weight:600;font-family:sans-serif">Loading Shadow Portal…</div>
+  <div style="width:180px;height:3px;background:#1a1a30;border-radius:99px;overflow:hidden">
+    <div style="height:100%;background:linear-gradient(90deg,#6c5ce7,#a29bfe);border-radius:99px;animation:load 2s ease-in-out infinite"></div>
+  </div>
+  <style>
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+    @keyframes load{0%{width:0%}70%{width:85%}100%{width:100%}}
+  </style>
+</div>
 <div id="root"></div>
 
-<script type="text/babel">
+<script type="text/babel" data-presets="react" data-plugins="transform-class-properties">
 const{useState,useEffect,useCallback,useRef}=React;
 
 /* ── SUPERADMIN ── */
@@ -228,6 +239,20 @@ const initials=(n='')=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,
 /* ══════════════════════════════════════
    MAIN APP
 ══════════════════════════════════════ */
+class ErrorBoundary extends React.Component{
+  constructor(props){super(props);this.state={error:null};}
+  static getDerivedStateFromError(e){return{error:e};}
+  render(){
+    if(this.state.error)return<div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',padding:40,textAlign:'center',background:'#070710',color:'#f0f0ff'}}>
+      <div style={{fontSize:48,marginBottom:16}}>⚠️</div>
+      <div style={{fontSize:20,fontWeight:800,marginBottom:8}}>Something went wrong</div>
+      <div style={{fontSize:13,color:'#a0a0c0',marginBottom:24,maxWidth:400}}>{this.state.error?.message||'An unexpected error occurred. Please refresh the page.'}</div>
+      <button onClick={()=>window.location.reload()} style={{background:'linear-gradient(135deg,#6c5ce7,#a29bfe)',color:'#fff',border:'none',borderRadius:9,padding:'10px 24px',fontSize:14,fontWeight:700,cursor:'pointer'}}>↺ Refresh Page</button>
+    </div>;
+    return this.props.children;
+  }
+}
+
 function App(){
   const[session,setSession]=useState(null); // {user, role}
   const[loading,setLoading]=useState(true);
@@ -459,13 +484,13 @@ function App(){
     <div style={{color:'var(--text2)',fontSize:13}}>Loading Shadow Portal…</div>
   </div>;
 
-  return<>
+  return<ErrorBoundary>
     <G/>
     <ToastWrap/>
     {view==='login'&&<LoginPage tab={loginTab} setTab={setLoginTab} onLogin={login}/>}
     {view==='admin'&&session&&<AdminApp session={session} setSession={setSession} onLogout={logout}/>}
     {view==='client'&&<div style={{color:'var(--text)',padding:40}}>Client portal</div>}
-  </>;
+  </ErrorBoundary>;
 }
 
 /* ══════════════════════════════════════
@@ -3373,7 +3398,13 @@ function LeaderboardTab({users}){
 }
 
 /* ── BOOT ── */
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+const _root = ReactDOM.createRoot(document.getElementById('root'));
+_root.render(<App/>);
+// Hide loading screen after React mounts
+requestAnimationFrame(()=>{
+  const ls=document.getElementById('loading-screen');
+  if(ls){ls.style.transition='opacity .3s';ls.style.opacity='0';setTimeout(()=>ls.remove(),300);}
+});
 </script>
 </body>
 </html>
