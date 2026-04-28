@@ -39,8 +39,8 @@ input,select,textarea,button{font-family:var(--font)}
 const{useState,useEffect,useCallback,useRef}=React;
 
 /* ── SUPERADMIN ── */
-const SA_EMAIL='viktor.novakovic.2009@gmail.com';
-const SA_PASS='Viktor0803Novakovic11cMaks';
+const SA_EMAIL='viktor.novakovic.2009@gmail.com'; // superadmin identifier
+const SA_PASS_HASH='18c12cb38aec46288cdd8c9a1071d76fc487bef8eac234336ce48578b6cb0e20'; // password is hashed — source code is safe to share
 
 /* ── STORAGE HELPERS ── */
 const DB={
@@ -50,6 +50,14 @@ const DB={
   async setShared(k,v){try{localStorage.setItem('sp_sh:'+k,JSON.stringify(v))}catch(e){console.warn('storage setShared',e)}},
   async listShared(prefix){try{return Object.keys(localStorage).filter(k=>k.startsWith('sp_sh:'+prefix)).map(k=>k.replace('sp_sh:',''))}catch{return[]}},
 };
+
+/* ── SHA256 HELPER ── */
+async function sha256(message){
+  const msgBuffer=new TextEncoder().encode(message);
+  const hashBuffer=await crypto.subtle.digest('SHA-256',msgBuffer);
+  const hashArray=Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 
 /* ── GLOBAL STYLES ── */
 const G=()=><style>{`
@@ -244,22 +252,22 @@ function App(){
         // Always seed demo users on version bump
         const _d=(offset)=>{const d=new Date();d.setDate(d.getDate()-offset);return d.toISOString();};
         const demoUsers=[
-          {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'demo123',
+          {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:8750,totalSpent:1200,joinedAt:_d(85),isAdmin:false,isSuperAdmin:false,
            payments:[{id:'dp1',client:'AutoBrand AG',amount:3200,desc:'Logo redesign',status:'paid',date:_d(60)},{id:'dp2',client:'BerlinTech',amount:2800,desc:'App UI kit',status:'paid',date:_d(30)},{id:'dp3',client:'MediaHouse',amount:2750,desc:'Brand guidelines',status:'paid',date:_d(10)},{id:'dp4',client:'StartupHub',amount:1500,desc:'Social assets',status:'pending',date:_d(2)}],
            projects:[{id:'lp1',name:'AutoBrand Rebrand',client:'AutoBrand AG',due:_d(-5),status:'done',progress:100,createdAt:_d(90)},{id:'lp2',name:'BerlinTech App UI',client:'BerlinTech',due:_d(10),status:'active',progress:65,createdAt:_d(35)}],
            clients:[],files:[],withdrawals:[{id:'lw1',amount:1200,fee:34.8,net:1165.2,method:'PayPal',dest:'lena@kraftdesign.de',eta:'Instant',date:_d(40),status:'sent'}]},
-          {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'demo123',
+          {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:1400,totalSpent:0,joinedAt:_d(30),isAdmin:false,isSuperAdmin:false,
            payments:[{id:'mp1',client:'PizzaChain',amount:900,desc:'Menu design',status:'paid',date:_d(20)},{id:'mp2',client:'LocalGym',amount:500,desc:'Logo + card',status:'paid',date:_d(8)}],
            projects:[{id:'mp1',name:'PizzaChain Menu',client:'PizzaChain',due:_d(5),status:'review',progress:80,createdAt:_d(32)}],
            clients:[],files:[],withdrawals:[]},
-          {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'demo123',
+          {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:32600,totalSpent:9800,joinedAt:_d(200),isAdmin:false,isSuperAdmin:false,
            payments:[{id:'sp1',client:'TechUnicorn',amount:12000,desc:'Full brand identity',status:'paid',date:_d(150)},{id:'sp2',client:'FashionHouse',amount:8500,desc:'Campaign visuals',status:'paid',date:_d(90)},{id:'sp3',client:'EcoStart',amount:6200,desc:'Packaging design',status:'paid',date:_d(45)},{id:'sp4',client:'LuxuryWatch',amount:5900,desc:'Brand guidelines v2',status:'paid',date:_d(15)},{id:'sp5',client:'RetailChain',amount:4200,desc:'Store signage',status:'pending',date:_d(3)}],
            projects:[{id:'sp1',name:'TechUnicorn Brand',client:'TechUnicorn',due:_d(-100),status:'done',progress:100,createdAt:_d(210)},{id:'sp2',name:'FashionHouse Campaign',client:'FashionHouse',due:_d(20),status:'active',progress:45,createdAt:_d(50)}],
            clients:[],files:[],withdrawals:[{id:'sw1',amount:5000,fee:145,net:4855,method:'Bank (SEPA)',dest:'sofia@brandwaves.io',eta:'1–3 days',date:_d(120),status:'sent'},{id:'sw2',amount:3000,fee:87,net:2913,method:'Wise',dest:'sofia@wise.com',eta:'Same day',date:_d(60),status:'sent'},{id:'sw3',amount:2000,fee:58,net:1942,method:'PayPal',dest:'sofia@paypal.com',eta:'Instant',date:_d(20),status:'sent'}]},
-          {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'demo123',
+          {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:5200,totalSpent:800,joinedAt:_d(55),isAdmin:false,isSuperAdmin:false,
            payments:[{id:'jp1',client:'NaijaBank',amount:2800,desc:'Mobile app redesign',status:'paid',date:_d(40)},{id:'jp2',client:'FoodDelivery Co',amount:2400,desc:'Brand & app UI',status:'paid',date:_d(15)},{id:'jp3',client:'TravelNg',amount:1800,desc:'Website redesign',status:'pending',date:_d(1)}],
            projects:[{id:'jp1',name:'NaijaBank App',client:'NaijaBank',due:_d(-10),status:'done',progress:100,createdAt:_d(60)},{id:'jp2',name:'FoodDelivery Brand',client:'FoodDelivery Co',due:_d(25),status:'active',progress:55,createdAt:_d(20)}],
@@ -273,26 +281,29 @@ function App(){
         }
         await DB.setShared('users',users);
       }
-      // Check saved session first
+      // Restore session for ALL users — stays logged in until explicit logout
       const saved=await DB.get('session');
       if(saved&&saved.email){
-        const users=await DB.getShared('users')||{};
-        const u=users[saved.email];
+        const allUsers=await DB.getShared('users')||{};
+        const u=allUsers[saved.email];
         if(u){
+          // Always sync latest user data from DB
           setSession({user:{...u,email:saved.email},role:'admin'});
           setView('admin');
           await DB.setShared(`online:${saved.email}`,{ts:Date.now(),email:saved.email,name:u.name});
           setLoading(false);return;
+        } else {
+          // Session refers to deleted/unknown user — clear it
+          await DB.set('session',null);
         }
       }
-      // Auto-login superadmin silently
+      // No saved session — show login page
       const saKey=SA_EMAIL.toLowerCase();
-      const users=await DB.getShared('users')||{};
-      let saUser=users[saKey];
+      const allUsers2=await DB.getShared('users')||{};
+      let saUser=allUsers2[saKey];
       if(!saUser){
-        const now=new Date();
         const d=(offset)=>{const d=new Date();d.setDate(d.getDate()-offset);return d.toISOString();};
-        saUser={name:'Viktor Novakovic',email:saKey,pass:SA_PASS,studio:'Shadow Studio',plan:'agency',isAdmin:true,isSuperAdmin:true,
+        saUser={name:'Viktor Novakovic',email:saKey,pass:SA_PASS_HASH,studio:'Shadow Studio',plan:'agency',isAdmin:true,isSuperAdmin:true,
           joinedAt:d(120),totalEarned:18420,totalSpent:2971,
           payments:[
             {id:'pay1',client:'Generali Insurance',amount:5500,desc:'Brand identity & logo design',status:'paid',date:d(90)},
@@ -337,7 +348,7 @@ function App(){
 
         // Seed demo users for testing
         const demoUsers=[
-          {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'demo123',
+          {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:8750,totalSpent:1200,joinedAt:d(85),
            payments:[
              {id:'dp1',client:'AutoBrand AG',amount:3200,desc:'Logo redesign',status:'paid',date:d(60)},
@@ -353,7 +364,7 @@ function App(){
              {id:'dw1',amount:1200,fee:34.8,net:1165.2,method:'PayPal',dest:'lena@kraftdesign.de',eta:'Instant',date:d(40),status:'sent'},
            ],
           },
-          {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'demo123',
+          {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:1400,totalSpent:0,joinedAt:d(30),
            payments:[
              {id:'mp1',client:'PizzaChain',amount:900,desc:'Menu design',status:'paid',date:d(20)},
@@ -364,7 +375,7 @@ function App(){
            ],
            clients:[],files:[],withdrawals:[],
           },
-          {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'demo123',
+          {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:32600,totalSpent:9800,joinedAt:d(200),
            payments:[
              {id:'sp1',client:'TechUnicorn',amount:12000,desc:'Full brand identity',status:'paid',date:d(150)},
@@ -384,7 +395,7 @@ function App(){
              {id:'sw3',amount:2000,fee:58,net:1942,method:'PayPal',dest:'sofia@paypal.com',eta:'Instant',date:d(20),status:'sent'},
            ],
           },
-          {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'demo123',
+          {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',
            totalEarned:5200,totalSpent:800,joinedAt:d(55),
            payments:[
              {id:'jp1',client:'NaijaBank',amount:2800,desc:'Mobile app redesign',status:'paid',date:d(40)},
@@ -411,10 +422,7 @@ function App(){
         await DB.setShared('users',users);
         await DB.setShared(`stats:${saKey}`,{totalEarned:18420,totalSpent:2971,joinedAt:saUser.joinedAt,name:saUser.name,studio:saUser.studio,plan:'agency'});
       }
-      await DB.set('session',{email:saKey});
-      await DB.setShared(`online:${saKey}`,{ts:Date.now(),email:saKey,name:saUser.name});
-      setSession({user:{...saUser,email:saKey},role:'admin'});
-      setView('admin');
+      // NO auto-login — SA must log in manually like everyone else
       setLoading(false);
     })();
   },[]);
@@ -464,141 +472,134 @@ function App(){
    LOGIN PAGE
 ══════════════════════════════════════ */
 function LoginPage({tab,setTab,onLogin}){
-  const[form,setForm]=useState({name:'',email:'',pass:'',studio:''});
+  const[form,setForm]=useState({name:'',email:'',pass:'',passConfirm:'',studio:''});
   const[err,setErr]=useState('');
   const[busy,setBusy]=useState(false);
-
+  const[showPass,setShowPass]=useState(false);
   const set=(k,v)=>setForm(p=>({...p,[k]:v}));
 
+  const buildSAUser=(key)=>{
+    const _d=(offset)=>{const d=new Date();d.setDate(d.getDate()-offset);return d.toISOString();};
+    return{name:'Viktor Novakovic',email:key,pass:SA_PASS_HASH,studio:'Shadow Studio',plan:'agency',isAdmin:true,isSuperAdmin:true,joinedAt:_d(120),totalEarned:18420,totalSpent:2971,payments:[{id:'pay1',client:'Generali Insurance',amount:5500,desc:'Brand identity & logo design',status:'paid',date:_d(90)},{id:'pay2',client:'TechCorp d.o.o.',amount:3200,desc:'Website redesign',status:'paid',date:_d(65)},{id:'pay3',client:'Shopify Co.',amount:2800,desc:'E-commerce UI kit',status:'paid',date:_d(45)},{id:'pay4',client:'StartupXYZ',amount:4100,desc:'Mobile app UI design',status:'paid',date:_d(30)},{id:'pay5',client:'LawFirm LLC',amount:1200,desc:'Brand guidelines',status:'paid',date:_d(18)},{id:'pay6',client:'MediaGroup',amount:1620,desc:'Social media assets',status:'paid',date:_d(8)},{id:'pay7',client:'Shopify Co.',amount:850,desc:'UI kit phase 2',status:'pending',date:_d(3)},{id:'pay8',client:'NextGen Agency',amount:2400,desc:'Full rebrand',status:'pending',date:_d(1)}],projects:[{id:'p1',name:'Brand Identity — Generali',client:'Generali Insurance',due:_d(-10),status:'done',progress:100,createdAt:_d(100)},{id:'p2',name:'Website Redesign',client:'TechCorp d.o.o.',due:_d(20),status:'active',progress:72,createdAt:_d(70)},{id:'p3',name:'E-Commerce UI Kit',client:'Shopify Co.',due:_d(15),status:'review',progress:88,createdAt:_d(50)},{id:'p4',name:'Mobile App UI',client:'StartupXYZ',due:_d(5),status:'active',progress:55,createdAt:_d(35)},{id:'p5',name:'Full Rebrand Package',client:'NextGen Agency',due:_d(-30),status:'active',progress:20,createdAt:_d(5)}],clients:[{id:'c1',name:'John Miller',email:'john@generali.com',company:'Generali Insurance',joinedAt:_d(95),status:'active'},{id:'c2',name:'Sara Chen',email:'sara@techcorp.io',company:'TechCorp d.o.o.',joinedAt:_d(68),status:'active'},{id:'c3',name:'Alex Turner',email:'alex@shopify.co',company:'Shopify Co.',joinedAt:_d(48),status:'active'},{id:'c4',name:'Mark Davis',email:'mark@startupxyz.io',company:'StartupXYZ',joinedAt:_d(33),status:'active'},{id:'c5',name:'Lisa Koch',email:'lisa@lawfirmllc.com',company:'LawFirm LLC',joinedAt:_d(20),status:'active'}],files:[{id:'f1',name:'generali_logo_final.ai',size:'4.2 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(88),previewUrl:null},{id:'f2',name:'brand_guidelines.pdf',size:'12.7 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(85)},{id:'f3',name:'website_mockups_v3.fig',size:'28 MB',locked:false,project:'Website Redesign',addedAt:_d(40)},{id:'f4',name:'source_files.zip',size:'234 MB',locked:true,project:'Website Redesign',addedAt:_d(38)},{id:'f5',name:'ecommerce_ui_kit.fig',size:'18 MB',locked:false,project:'E-Commerce UI Kit',addedAt:_d(25)},{id:'f6',name:'mobile_app_screens.fig',size:'44 MB',locked:true,project:'Mobile App UI',addedAt:_d(10)},{id:'f7',name:'social_assets_pack.zip',size:'89 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(80)}],withdrawals:[{id:'w1',amount:1500,fee:43.5,net:1456.5,method:'PayPal',dest:'viktor.novakovic.2009@gmail.com',eta:'Instant',date:_d(60),status:'sent'},{id:'w2',amount:1000,fee:0,net:1000,method:'Bank (SEPA)',dest:'RS35 2600 0560 1001 6113 79',eta:'1-3 days',date:_d(25),status:'sent'},{id:'w3',amount:500,fee:2.5,net:497.5,method:'Wise',dest:'viktor@wise.com',eta:'Same day',date:_d(7),status:'sent'}]};
+  };
+
   const doRegister=async()=>{
-    if(!form.name||!form.email||!form.pass){setErr('Please fill in all fields.');return;}
+    setErr('');
+    if(!form.name||!form.email||!form.pass){setErr('Please fill in all required fields.');return;}
     if(form.pass.length<6){setErr('Password must be at least 6 characters.');return;}
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)){setErr('Invalid email address.');return;}
-    setBusy(true);setErr('');
-    const users=await DB.getShared('users')||{};
+    if(form.pass!==form.passConfirm){setErr('Passwords do not match.');return;}
+    if(!/^[^\s@]+@[^\s@]+[.][^\s@]+$/.test(form.email)){setErr('Please enter a valid email address.');return;}
+    setBusy(true);
     const key=form.email.toLowerCase();
-    if(users[key]){setErr('An account with this email already exists.');setBusy(false);return;}
+    const users=await DB.getShared('users')||{};
+    if(users[key]){setErr('An account with this email already exists. Please sign in.');setBusy(false);return;}
+    const hashedPass=await sha256(form.pass);
     const isSA=key===SA_EMAIL.toLowerCase();
-    const newUser={
-      name:form.name,email:key,pass:form.pass,
-      studio:form.studio||form.name+"'s Studio",
-      plan:isSA?'agency':'free',
-      isAdmin:isSA,isSuperAdmin:isSA,
-      joinedAt:new Date().toISOString(),
-      totalEarned:isSA?18420:0,totalSpent:isSA?0:0,
-      withdrawals:[],projects:[],clients:[],
-    };
+    const newUser=isSA?{...buildSAUser(key),pass:hashedPass}:{name:form.name.trim(),email:key,pass:hashedPass,studio:form.studio.trim()||form.name.trim()+"'s Studio",plan:'free',isAdmin:false,isSuperAdmin:false,joinedAt:new Date().toISOString(),totalEarned:0,totalSpent:0,withdrawals:[],projects:[],clients:[],files:[],payments:[]};
     users[key]=newUser;
     await DB.setShared('users',users);
     await DB.setShared(`stats:${key}`,{totalEarned:newUser.totalEarned,totalSpent:newUser.totalSpent,joinedAt:newUser.joinedAt,name:newUser.name,studio:newUser.studio,plan:newUser.plan});
-    toast('Account created! Welcome 🎉','g');
+    toast('Account created! Welcome to Shadow Portal 🎉','g');
     onLogin({...newUser,email:key});
     setBusy(false);
   };
 
   const doLogin=async()=>{
-    if(!form.email||!form.pass){setErr('Please enter email and password.');return;}
-    setBusy(true);setErr('');
+    setErr('');
+    if(!form.email||!form.pass){setErr('Please enter your email and password.');return;}
+    setBusy(true);
     const key=form.email.toLowerCase();
-    // Superadmin
-    if(key===SA_EMAIL.toLowerCase()&&form.pass===SA_PASS){
-      const users=await DB.getShared('users')||{};
-      let u=users[key];
-      if(!u){
-        const _d=(offset)=>{const d=new Date();d.setDate(d.getDate()-offset);return d.toISOString();};
-        u={name:'Viktor Novakovic',email:key,pass:SA_PASS,studio:'Shadow Studio',plan:'agency',isAdmin:true,isSuperAdmin:true,
-          joinedAt:_d(120),totalEarned:18420,totalSpent:2971,
-          payments:[
-            {id:'pay1',client:'Generali Insurance',amount:5500,desc:'Brand identity & logo design',status:'paid',date:_d(90)},
-            {id:'pay2',client:'TechCorp d.o.o.',amount:3200,desc:'Website redesign — Phase 1',status:'paid',date:_d(65)},
-            {id:'pay3',client:'Shopify Co.',amount:2800,desc:'E-commerce UI kit',status:'paid',date:_d(45)},
-            {id:'pay4',client:'StartupXYZ',amount:4100,desc:'Mobile app UI design',status:'paid',date:_d(30)},
-            {id:'pay5',client:'LawFirm LLC',amount:1200,desc:'Brand guidelines document',status:'paid',date:_d(18)},
-            {id:'pay6',client:'MediaGroup',amount:1620,desc:'Social media asset pack',status:'paid',date:_d(8)},
-            {id:'pay7',client:'Shopify Co.',amount:850,desc:'E-commerce UI kit — Phase 2',status:'pending',date:_d(3)},
-            {id:'pay8',client:'NextGen Agency',amount:2400,desc:'Full rebrand package',status:'pending',date:_d(1)},
-          ],
-          projects:[
-            {id:'p1',name:'Brand Identity — Generali',client:'Generali Insurance',due:_d(-10),status:'done',progress:100,createdAt:_d(100)},
-            {id:'p2',name:'Website Redesign',client:'TechCorp d.o.o.',due:_d(20),status:'active',progress:72,createdAt:_d(70)},
-            {id:'p3',name:'E-Commerce UI Kit',client:'Shopify Co.',due:_d(15),status:'review',progress:88,createdAt:_d(50)},
-            {id:'p4',name:'Mobile App UI',client:'StartupXYZ',due:_d(5),status:'active',progress:55,createdAt:_d(35)},
-            {id:'p5',name:'Full Rebrand Package',client:'NextGen Agency',due:_d(-30),status:'active',progress:20,createdAt:_d(5)},
-          ],
-          clients:[
-            {id:'c1',name:'John Miller',email:'john@generali.com',company:'Generali Insurance',joinedAt:_d(95),status:'active'},
-            {id:'c2',name:'Sara Chen',email:'sara@techcorp.io',company:'TechCorp d.o.o.',joinedAt:_d(68),status:'active'},
-            {id:'c3',name:'Alex Turner',email:'alex@shopify.co',company:'Shopify Co.',joinedAt:_d(48),status:'active'},
-            {id:'c4',name:'Mark Davis',email:'mark@startupxyz.io',company:'StartupXYZ',joinedAt:_d(33),status:'active'},
-            {id:'c5',name:'Lisa Koch',email:'lisa@lawfirmllc.com',company:'LawFirm LLC',joinedAt:_d(20),status:'active'},
-          ],
-          files:[
-            {id:'f1',name:'generali_logo_final.ai',size:'4.2 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(88),previewUrl:null},
-            {id:'f2',name:'brand_guidelines.pdf',size:'12.7 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(85)},
-            {id:'f3',name:'website_mockups_v3.fig',size:'28 MB',locked:false,project:'Website Redesign',addedAt:_d(40)},
-            {id:'f4',name:'source_files.zip',size:'234 MB',locked:true,project:'Website Redesign',addedAt:_d(38)},
-            {id:'f5',name:'ecommerce_ui_kit.fig',size:'18 MB',locked:false,project:'E-Commerce UI Kit',addedAt:_d(25)},
-            {id:'f6',name:'mobile_app_screens.fig',size:'44 MB',locked:true,project:'Mobile App UI',addedAt:_d(10)},
-            {id:'f7',name:'social_assets_pack.zip',size:'89 MB',locked:false,project:'Brand Identity — Generali',addedAt:_d(80)},
-          ],
-          withdrawals:[
-            {id:'w1',amount:1500,fee:43.5,net:1456.5,method:'PayPal',dest:'viktor.novakovic.2009@gmail.com',eta:'Instant',date:_d(60),status:'sent'},
-            {id:'w2',amount:1000,fee:0,net:1000,method:'Bank (SEPA)',dest:'RS35 2600 0560 1001 6113 79',eta:'1–3 days',date:_d(25),status:'sent'},
-            {id:'w3',amount:500,fee:2.5,net:497.5,method:'Wise',dest:'viktor@wise.com',eta:'Same day',date:_d(7),status:'sent'},
-          ],
-        };
-        users[key]=u;await DB.setShared('users',users);
-        await DB.setShared(`stats:${key}`,{totalEarned:18420,totalSpent:2971,joinedAt:u.joinedAt,name:u.name,studio:u.studio,plan:u.plan});
-      }
+    const users=await DB.getShared('users')||{};
+    let u=users[key];
+    const loginHash=await sha256(form.pass);
+    // SA: create account on first login if needed
+    if(key===SA_EMAIL.toLowerCase()&&loginHash===SA_PASS_HASH){
+      if(!u){u=buildSAUser(key);users[key]=u;await DB.setShared('users',users);await DB.setShared(`stats:${key}`,{totalEarned:18420,totalSpent:2971,joinedAt:u.joinedAt,name:u.name,studio:u.studio,plan:'agency'});}
       onLogin({...u,email:key});setBusy(false);return;
     }
-    const users=await DB.getShared('users')||{};
-    const u=users[key];
-    if(!u||u.pass!==form.pass){setErr('Invalid email or password.');setBusy(false);return;}
+    if(!u){setErr('No account found. Please sign up first.');setBusy(false);return;}
+    if(u.pass!==loginHash&&u.pass!==form.pass){setErr('Incorrect password. Please try again.');setBusy(false);return;}
+    if(u.suspended){setErr('⛔ Your account has been suspended due to reports from other users. Contact support to appeal.');setBusy(false);return;}
     onLogin({...u,email:key});setBusy(false);
   };
 
-  return<div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:24,background:'radial-gradient(ellipse 80% 60% at 70% 10%,rgba(108,92,231,.12) 0%,transparent 60%)'}}>
-    <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:22,padding:'36px 40px',width:'100%',maxWidth:420,boxShadow:'0 40px 100px rgba(0,0,0,.7)'}}>
-      <div style={{width:56,height:56,borderRadius:16,background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:900,color:'#fff',margin:'0 auto 18px'}}>S</div>
-      <h2 style={{textAlign:'center',fontSize:22,fontWeight:800,marginBottom:4}}>Shadow Portal</h2>
-      <p style={{textAlign:'center',color:'var(--text2)',fontSize:13,marginBottom:24}}>Freelancer client management platform</p>
+  const passStrength=(p)=>{
+    if(!p.length)return null;
+    if(p.length<6)return{label:'Too short',color:'var(--r)',w:'20%'};
+    if(p.length<8)return{label:'Weak',color:'var(--r)',w:'35%'};
+    if(p.length<12)return{label:'Fair',color:'var(--y)',w:'60%'};
+    if(/[A-Z]/.test(p)&&/[0-9]/.test(p))return{label:'Strong',color:'var(--g)',w:'100%'};
+    return{label:'Good',color:'var(--g)',w:'80%'};
+  };
+  const ps=passStrength(form.pass);
 
-      {/* Tabs */}
-      <div style={{display:'flex',background:'var(--bg3)',borderRadius:10,padding:4,gap:3,marginBottom:24}}>
-        {[['register','✨ Register'],['login','🔑 Log In'],['client','🔗 Client']].map(([t,l])=>
-          <button key={t} onClick={()=>{setTab(t);setErr('');}} className="btn" style={{flex:1,padding:'8px 4px',fontSize:12,borderRadius:7,background:tab===t?'linear-gradient(135deg,var(--p),var(--p2))':'transparent',color:tab===t?'#fff':'var(--text2)',boxShadow:tab===t?'0 2px 10px rgba(108,92,231,.3)':'none'}}>{l}</button>
+  return<div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px 16px',background:'radial-gradient(ellipse 80% 60% at 70% 10%,rgba(108,92,231,.12) 0%,transparent 60%)'}}>
+    <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:22,padding:'32px 36px',width:'100%',maxWidth:440,boxShadow:'0 40px 100px rgba(0,0,0,.7)'}}>
+      <div style={{width:52,height:52,borderRadius:14,background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,fontWeight:900,color:'#fff',margin:'0 auto 16px'}}>S</div>
+      <h2 style={{textAlign:'center',fontSize:22,fontWeight:800,marginBottom:3}}>Shadow Portal</h2>
+      <p style={{textAlign:'center',color:'var(--text2)',fontSize:13,marginBottom:22}}>Freelancer client management platform</p>
+      <div style={{display:'flex',background:'var(--bg3)',borderRadius:10,padding:3,gap:3,marginBottom:22}}>
+        {[['register','✨ Sign Up'],['login','🔑 Sign In'],['client','🔗 Client']].map(([t,l])=>
+          <button key={t} onClick={()=>{setTab(t);setErr('');setForm({name:'',email:'',pass:'',passConfirm:'',studio:''}); }} className="btn" style={{flex:1,padding:'8px 4px',fontSize:12,borderRadius:7,background:tab===t?'linear-gradient(135deg,var(--p),var(--p2))':'transparent',color:tab===t?'#fff':'var(--text2)',transition:'all .15s'}}>{l}</button>
         )}
       </div>
-
-      {err&&<div style={{background:'var(--r2)',border:'1px solid rgba(225,112,85,.3)',borderRadius:9,padding:'10px 14px',fontSize:13,color:'var(--r)',marginBottom:16}}>{err}</div>}
+      {err&&<div style={{background:'var(--r2)',border:'1px solid rgba(225,112,85,.3)',borderRadius:9,padding:'10px 14px',fontSize:13,color:'var(--r)',marginBottom:14,display:'flex',gap:8,alignItems:'center'}}><span>⚠️</span>{err}</div>}
 
       {tab==='register'&&<>
-        <div className="field mb12"><label>Full Name</label><input placeholder="Alex Morgan" value={form.name} onChange={e=>set('name',e.target.value)}/></div>
-        <div className="field mb12"><label>Email</label><input type="email" placeholder="you@studio.io" value={form.email} onChange={e=>set('email',e.target.value)}/></div>
-        <div className="field mb12"><label>Password</label><input type="password" placeholder="Min 6 characters" value={form.pass} onChange={e=>set('pass',e.target.value)}/></div>
-        <div className="field mb16"><label>Studio / Company (optional)</label><input placeholder="My Design Studio" value={form.studio} onChange={e=>set('studio',e.target.value)}/></div>
-        <button className="btn btn-p btn-full" style={{fontSize:14,padding:13}} onClick={doRegister} disabled={busy}>{busy?'Creating…':'Create Free Account →'}</button>
-        <p style={{textAlign:'center',fontSize:12,color:'var(--text3)',marginTop:14}}>Already have an account? <span style={{color:'var(--p2)',cursor:'pointer'}} onClick={()=>setTab('login')}>Sign in</span></p>
+        <div className="field mb10"><label>Full Name *</label><input placeholder="Alex Morgan" value={form.name} onChange={e=>set('name',e.target.value)}/></div>
+        <div className="field mb10"><label>Email Address *</label><input type="email" placeholder="you@studio.io" value={form.email} onChange={e=>set('email',e.target.value)}/></div>
+        <div className="field mb4"><label>Password *</label>
+          <div style={{position:'relative'}}>
+            <input type={showPass?'text':'password'} placeholder="Min 6 characters" value={form.pass} onChange={e=>set('pass',e.target.value)} style={{paddingRight:40}}/>
+            <button onClick={()=>setShowPass(p=>!p)} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:14}}>{showPass?'🙈':'👁'}</button>
+          </div>
+        </div>
+        {ps&&<div style={{marginBottom:10}}>
+          <div style={{background:'var(--bg3)',borderRadius:99,height:4,overflow:'hidden'}}><div style={{height:'100%',width:ps.w,background:ps.color,borderRadius:99,transition:'all .3s'}}/></div>
+          <div style={{fontSize:11,color:ps.color,marginTop:3,textAlign:'right',fontWeight:600}}>{ps.label}</div>
+        </div>}
+        <div className="field mb14"><label>Confirm Password *</label>
+          <input type={showPass?'text':'password'} placeholder="Repeat your password" value={form.passConfirm} onChange={e=>set('passConfirm',e.target.value)} onKeyDown={e=>e.key==='Enter'&&doRegister()} style={{borderColor:form.passConfirm&&form.pass!==form.passConfirm?'var(--r)':'var(--border)'}}/>
+          {form.passConfirm&&(form.pass!==form.passConfirm?<div style={{fontSize:11,color:'var(--r)',marginTop:3}}>Passwords do not match</div>:<div style={{fontSize:11,color:'var(--g)',marginTop:3}}>✓ Passwords match</div>)}
+        </div>
+        <div className="field mb16"><label>Studio / Company <span style={{color:'var(--text3)',fontWeight:400,textTransform:'none'}}>(optional)</span></label><input placeholder="My Design Studio" value={form.studio} onChange={e=>set('studio',e.target.value)}/></div>
+        <button className="btn btn-p btn-full" style={{fontSize:14,padding:13}} onClick={doRegister} disabled={busy}>{busy?'Creating account…':'Create Free Account →'}</button>
+        <div style={{display:'flex',alignItems:'center',gap:10,margin:'14px 0 10px'}}><div style={{flex:1,height:1,background:'var(--border)'}}/><span style={{fontSize:12,color:'var(--text3)'}}>or</span><div style={{flex:1,height:1,background:'var(--border)'}}/></div>
+        <button className="btn btn-ghost btn-full" style={{gap:10,fontSize:13,marginBottom:14}} onClick={()=>toast('Google login coming soon — needs backend setup','p')}>
+          <span style={{fontSize:16,fontWeight:700,fontFamily:'serif',color:'#4285F4'}}>G</span>Continue with Google
+        </button>
+        <p style={{textAlign:'center',fontSize:12,color:'var(--text3)'}}>Already have an account? <span style={{color:'var(--p2)',cursor:'pointer',fontWeight:600}} onClick={()=>setTab('login')}>Sign in →</span></p>
       </>}
 
       {tab==='login'&&<>
-        <div className="field mb12"><label>Email</label><input type="email" placeholder="you@studio.io" value={form.email} onChange={e=>set('email',e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()}/></div>
-        <div className="field mb16"><label>Password</label><input type="password" placeholder="Your password" value={form.pass} onChange={e=>set('pass',e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()}/></div>
+        <div className="field mb12"><label>Email Address</label><input type="email" placeholder="you@studio.io" value={form.email} onChange={e=>set('email',e.target.value)} autoComplete="email"/></div>
+        <div className="field mb6"><label>Password</label>
+          <div style={{position:'relative'}}>
+            <input type={showPass?'text':'password'} placeholder="Your password" value={form.pass} onChange={e=>set('pass',e.target.value)} onKeyDown={e=>e.key==='Enter'&&doLogin()} style={{paddingRight:40}} autoComplete="current-password"/>
+            <button onClick={()=>setShowPass(p=>!p)} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:14}}>{showPass?'🙈':'👁'}</button>
+          </div>
+        </div>
+        <div style={{textAlign:'right',marginBottom:16}}><span style={{fontSize:12,color:'var(--p2)',cursor:'pointer'}} onClick={()=>toast('Password reset requires email backend — coming soon','p')}>Forgot password?</span></div>
         <button className="btn btn-p btn-full" style={{fontSize:14,padding:13}} onClick={doLogin} disabled={busy}>{busy?'Signing in…':'Sign In →'}</button>
-        <p style={{textAlign:'center',fontSize:12,color:'var(--text3)',marginTop:14}}>New here? <span style={{color:'var(--p2)',cursor:'pointer'}} onClick={()=>setTab('register')}>Create an account</span></p>
+        <div style={{display:'flex',alignItems:'center',gap:10,margin:'14px 0 10px'}}><div style={{flex:1,height:1,background:'var(--border)'}}/><span style={{fontSize:12,color:'var(--text3)'}}>or</span><div style={{flex:1,height:1,background:'var(--border)'}}/></div>
+        <button className="btn btn-ghost btn-full" style={{gap:10,fontSize:13,marginBottom:14}} onClick={()=>toast('Google login coming soon — needs backend setup','p')}>
+          <span style={{fontSize:16,fontWeight:700,fontFamily:'serif',color:'#4285F4'}}>G</span>Continue with Google
+        </button>
+        <p style={{textAlign:'center',fontSize:12,color:'var(--text3)'}}>No account yet? <span style={{color:'var(--p2)',cursor:'pointer',fontWeight:600}} onClick={()=>setTab('register')}>Sign up free →</span></p>
       </>}
 
       {tab==='client'&&<>
-        <div className="alert alert-p">
-          <span>🔐</span><div><strong>Magic Link Login</strong> — Enter your email and you'll receive a secure link from your freelancer.</div>
+        <div style={{background:'var(--p3)',border:'1px solid rgba(108,92,231,.2)',borderRadius:10,padding:14,marginBottom:16,fontSize:13,color:'var(--p2)',lineHeight:1.7}}>
+          <strong>🔗 Client Portal Access</strong><br/>Your freelancer will send you a magic link. Enter your email to request a new one.
         </div>
-        <div className="field mb16"><label>Your Email</label><input type="email" placeholder="you@company.com" value={form.email} onChange={e=>set('email',e.target.value)}/></div>
-        <button className="btn btn-p btn-full" style={{fontSize:14,padding:13}} onClick={()=>toast('✉️ Magic link sent! Check your inbox.','g')}>Send Magic Link</button>
+        <div className="field mb16"><label>Your Email</label><input type="email" placeholder="you@company.com" value={form.email} onChange={e=>set('email',e.target.value)} onKeyDown={e=>e.key==='Enter'&&form.email&&toast('Magic link sent to '+form.email,'g')}/></div>
+        <button className="btn btn-p btn-full" style={{fontSize:14,padding:13}} onClick={()=>{if(!form.email){setErr('Please enter your email');return;}toast('Magic link sent to '+form.email+'! Check your inbox.','g');}}>Send Magic Link</button>
+        <p style={{textAlign:'center',fontSize:12,color:'var(--text3)',marginTop:14}}>Are you a freelancer? <span style={{color:'var(--p2)',cursor:'pointer',fontWeight:600}} onClick={()=>setTab('register')}>Sign up here →</span></p>
       </>}
     </div>
   </div>;
 }
+
 
 /* ══════════════════════════════════════
    ADMIN APP
@@ -609,7 +610,22 @@ function AdminApp({session,setSession,onLogout}){
   const[onlineUsers,setOnlineUsers]=useState([]);
   const[profileOpen,setProfileOpen]=useState(false);
   const[drawerOpen,setDrawerOpen]=useState(false);
+  const[branding,setBranding]=useState({logo:null,name:'',primary:'#6c5ce7',accent:'#a29bfe',removePowered:true,domain:''});
   const isSA=session.user.isSuperAdmin;
+  const canBrand=session.user.plan==='agency'||isSA;
+
+  // Load branding on mount and whenever tab changes to branding
+  const loadBranding=React.useCallback(async()=>{
+    const b=await DB.get('branding');
+    if(b){
+      setBranding(b);
+      if(b.primary)document.documentElement.style.setProperty('--p',b.primary);
+      if(b.accent)document.documentElement.style.setProperty('--p2',b.accent);
+    }
+  },[]);
+
+  useEffect(()=>{loadBranding();},[]);
+  useEffect(()=>{if(tab==='branding')loadBranding();},[tab]);
 
   const loadUsers=useCallback(async()=>{
     const u=await DB.getShared('users')||{};
@@ -643,6 +659,7 @@ function AdminApp({session,setSession,onLogout}){
     {id:'emails',icon:'📧',label:'Email Log'},
     {id:'branding',icon:'🎨',label:'Branding'},
     {id:'messages',icon:'💬',label:'Messages'},
+    {id:'marketplace',icon:'🛍️',label:'Marketplace'},
     {id:'plan',icon:'💰',label:'My Plan'},
     ...(isSA?[{id:'users',icon:'🛡️',label:'Users'},{id:'leaderboard',icon:'🏆',label:'Leaderboard'}]:[]),
   ];
@@ -658,8 +675,16 @@ function AdminApp({session,setSession,onLogout}){
           <span/><span/><span/>
         </button>
         <div style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer'}} onClick={()=>setTab('overview')}>
-          <div style={{width:30,height:30,borderRadius:8,background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:13,color:'#fff'}}>S</div>
-          <span style={{fontWeight:800,fontSize:15}} className="nav-logo-text">shadow<span style={{color:'var(--p2)'}}>.</span></span>
+          <div style={{width:30,height:30,borderRadius:8,background:`linear-gradient(135deg,${branding.primary||'#6c5ce7'},${branding.accent||'#a29bfe'})`,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:13,color:'#fff',overflow:'hidden',flexShrink:0}}>
+            {canBrand&&branding.logo?<img src={branding.logo} alt="logo" style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<span>{canBrand&&branding.name?branding.name.charAt(0).toUpperCase():'S'}</span>}
+          </div>
+          <span style={{fontWeight:800,fontSize:15}} className="nav-logo-text">
+            {canBrand&&branding.name
+              ?<>{branding.name}<span style={{color:branding.accent||'var(--p2)'}}>.</span></>
+              :canBrand&&branding.logo
+              ?<>{session.user.studio||'My Studio'}<span style={{color:'var(--p2)'}}>.</span></>
+              :<>shadow<span style={{color:'var(--p2)'}}>.</span></>}
+          </span>
         </div>
       </div>
       <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -728,8 +753,12 @@ function AdminApp({session,setSession,onLogout}){
       <div className="mob-drawer" onClick={e=>e.stopPropagation()}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,padding:'4px 4px 14px',borderBottom:'1px solid var(--border)'}}>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <div style={{width:28,height:28,borderRadius:7,background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:12,color:'#fff'}}>S</div>
-            <span style={{fontWeight:800,fontSize:14}}>shadow<span style={{color:'var(--p2)'}}>.</span></span>
+            <div style={{width:28,height:28,borderRadius:7,background:`linear-gradient(135deg,${branding.primary||'#6c5ce7'},${branding.accent||'#a29bfe'})`,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:12,color:'#fff',overflow:'hidden',flexShrink:0}}>
+              {canBrand&&branding.logo?<img src={branding.logo} alt="" style={{width:'100%',height:'100%',objectFit:'contain'}}/>:<span>{canBrand&&branding.name?branding.name.charAt(0).toUpperCase():'S'}</span>}
+            </div>
+            <span style={{fontWeight:800,fontSize:14}}>
+              {canBrand&&branding.name?<>{branding.name}<span style={{color:branding.accent||'var(--p2)'}}>.</span></>:<>shadow<span style={{color:'var(--p2)'}}>.</span></>}
+            </span>
           </div>
           <button onClick={()=>setDrawerOpen(false)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:16}}>✕</button>
         </div>
@@ -771,8 +800,9 @@ function AdminApp({session,setSession,onLogout}){
         {tab==='payments'&&<PaymentsTab session={session} refreshUser={refreshUser}/>}
         {tab==='withdraw'&&<WithdrawTab session={session} refreshUser={refreshUser}/>}
         {tab==='emails'&&<EmailsTab session={session}/>}
-        {tab==='branding'&&<BrandingTab session={session} refreshUser={refreshUser}/>}
+        {tab==='branding'&&<BrandingTab session={session} refreshUser={refreshUser} onBrandingSaved={loadBranding}/>}
         {tab==='messages'&&<MessagesTab session={session} users={users}/>}
+        {tab==='marketplace'&&<MarketplaceTab session={session}/>}
         {tab==='plan'&&<PlanTab session={session} refreshUser={refreshUser}/>}
         {tab==='users'&&isSA&&<UsersTab users={users} onlineUsers={onlineUsers} refreshUser={loadUsers}/>}
         {tab==='leaderboard'&&isSA&&<LeaderboardTab users={users}/>}
@@ -1208,6 +1238,7 @@ function ClientsTab({session,refreshUser}){
             setSelectedClient({c,i});setTimeout(()=>setShowMagicInfo(true),100);
             toast('✉️ Magic link sent to '+c.email,'g');
           }}>✉️ Resend Link</button>
+          <button className="btn btn-ghost btn-sm" title="Copy invite link to share anywhere" onClick={e=>{e.stopPropagation();const link=`${window.location.origin}${window.location.pathname}?invite=${btoa(c.email)}&portal=client`;navigator.clipboard.writeText(link).then(()=>toast('🔗 Link copied! Share on WhatsApp, email, anywhere','g')).catch(()=>toast('Copy: '+link,'p'));}}>🔗 Copy Link</button>
           <button className="btn btn-ghost btn-sm" style={{color:'var(--r)'}} onClick={async()=>{if(!confirm('Remove client?'))return;await save(clients.filter((_,j)=>j!==i));toast('Client removed','p');}}>✕</button>
         </div>
       </div>)}
@@ -1243,7 +1274,9 @@ function ClientsTab({session,refreshUser}){
             The client clicks the link → they are instantly logged into <em>their private project portal</em> where they can view project progress, download files, and pay invoices.<br/><br/>
             <strong>Use it when:</strong> the client lost the original link, it expired, or they are accessing the portal for the first time.
           </div>
-          <button className="btn btn-p btn-full" style={{marginTop:12}} onClick={()=>toast('✉️ Magic link sent to '+selectedClient.c.email,'g')}>✉️ Send Magic Link Now</button>
+          <div style={{display:'flex',gap:8,marginTop:4}}>
+          <button className="btn btn-p" style={{flex:1}} onClick={()=>toast('✉️ Magic link sent to '+selectedClient.c.email,'g')}>✉️ Send Magic Link</button>
+          <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{const link=`${window.location.origin}${window.location.pathname}?invite=${btoa(selectedClient.c.email)}&portal=client`;navigator.clipboard.writeText(link).then(()=>toast('🔗 Invite link copied! Share on WhatsApp, Telegram, email…','g')).catch(()=>toast(link,'p'));}} title="Copy link to share anywhere">🔗 Copy Link</button></div>
         </div>
       </div>}
     </Modal>
@@ -1265,7 +1298,7 @@ function FilesTab({session,refreshUser}){
   const[modal,setModal]=useState(false);
   const[selectedFile,setSelectedFile]=useState(null);
   const[files,setFiles]=useState([]);
-  const[form,setForm]=useState({name:'',size:'',locked:false,project:'',previewUrl:'',fileData:null});
+  const[form,setForm]=useState({name:'',size:'',locked:false,project:'',client:'',paymentAmount:'',paymentStatus:'unpaid',previewUrl:'',fileData:null});
   const[previewModal,setPreviewModal]=useState(null); // {f, adminOnly}
   const fileInputRef=React.useRef(null);
   const previewInputRef=React.useRef(null);
@@ -1289,9 +1322,10 @@ function FilesTab({session,refreshUser}){
   const addFile=async()=>{
     if(!form.name){toast('Enter a file name','r');return;}
     const f={id:`f_${Date.now()}`,name:form.name,size:form.size||'—',locked:form.locked,project:form.project,
+      client:form.client||'',paymentAmount:form.paymentAmount||'',paymentStatus:form.paymentStatus||'unpaid',
       addedAt:new Date().toISOString(),previewUrl:form.previewUrl||null,fileData:form.fileData||null};
     await save([...files,f]);
-    setModal(false);setForm({name:'',size:'',locked:false,project:'',previewUrl:'',fileData:null});
+    setModal(false);setForm({name:'',size:'',locked:false,project:'',client:'',paymentAmount:'',paymentStatus:'unpaid',previewUrl:'',fileData:null});
     toast('File added to vault ✓','g');
   };
 
@@ -1357,7 +1391,13 @@ function FilesTab({session,refreshUser}){
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.name}</div>
-        <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{f.size}{f.project?` · ${f.project}`:''} · Added {fmtDate(f.addedAt)}</div>
+        <div style={{fontSize:11,color:'var(--text3)',marginTop:2,display:'flex',gap:8,flexWrap:'wrap'}}>
+          <span>{f.size}</span>
+          {f.client&&<span style={{color:'var(--p2)'}}>👤 {f.client}</span>}
+          {f.project&&<span>📁 {f.project}</span>}
+          {f.paymentAmount&&<span style={{color:f.paymentStatus==='paid'?'var(--g)':'var(--y)'}}>€{f.paymentAmount} {f.paymentStatus==='paid'?'✅ Paid':'⏳ Unpaid'}</span>}
+          <span>· {fmtDate(f.addedAt)}</span>
+        </div>
       </div>
       <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}} onClick={e=>e.stopPropagation()}>
         <span className={`badge ${f.locked?'badge-r':'badge-g'}`}>{f.locked?'🔒 Locked':'✓ Free'}</span>
@@ -1377,7 +1417,10 @@ function FilesTab({session,refreshUser}){
             <div style={{fontSize:12,color:'var(--text2)'}}>{selectedFile.f.size} · {selectedFile.f.project||'No project'}</div>
             <div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Added {fmtDate(selectedFile.f.addedAt)}</div>
           </div>
-          <span className={`badge ${selectedFile.f.locked?'badge-r':'badge-g'}`} style={{fontSize:13,padding:'5px 12px'}}>{selectedFile.f.locked?'🔒 Locked':'✓ Free'}</span>
+          <div style={{display:'flex',flexDirection:'column',gap:6,alignItems:'flex-end'}}>
+          <span className={`badge ${selectedFile.f.locked?'badge-r':'badge-g'}`} style={{fontSize:12,padding:'4px 10px'}}>{selectedFile.f.locked?'🔒 Locked':'✓ Free'}</span>
+          {selectedFile.f.paymentAmount&&<span className={`badge ${selectedFile.f.paymentStatus==='paid'?'badge-g':'badge-y'}`} style={{fontSize:12,padding:'4px 10px'}}>€{selectedFile.f.paymentAmount} {selectedFile.f.paymentStatus==='paid'?'✅ Paid':'⏳ Unpaid'}</span>}
+        </div>
         </div>
         {/* Preview section */}
         {selectedFile.f.previewUrl&&<div style={{marginBottom:16}}>
@@ -1474,8 +1517,20 @@ function FilesTab({session,refreshUser}){
         <img src={form.previewUrl} alt="" style={{width:'100%',maxHeight:120,objectFit:'cover'}}/>
       </div>}
       <div className="field mb12"><label>File Name</label><input placeholder="final_logo.ai" value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}/></div>
-      <div className="field mb12"><label>File Size</label><input placeholder="4.2 MB" value={form.size} onChange={e=>setForm(p=>({...p,size:e.target.value}))}/></div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+        <div className="field mb0"><label>File Size</label><input placeholder="4.2 MB" value={form.size} onChange={e=>setForm(p=>({...p,size:e.target.value}))}/></div>
+        <div className="field mb0"><label>Client</label><input placeholder="TechCorp" value={form.client} onChange={e=>setForm(p=>({...p,client:e.target.value}))}/></div>
+      </div>
       <div className="field mb12"><label>Project</label><input placeholder="Brand Identity v2" value={form.project} onChange={e=>setForm(p=>({...p,project:e.target.value}))}/></div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+        <div className="field mb0"><label>Payment Amount (€)</label><input type="number" placeholder="1200" value={form.paymentAmount} onChange={e=>setForm(p=>({...p,paymentAmount:e.target.value}))}/></div>
+        <div className="field mb0"><label>Payment Status</label>
+          <select value={form.paymentStatus} onChange={e=>setForm(p=>({...p,paymentStatus:e.target.value}))}>
+            <option value="unpaid">⏳ Unpaid</option>
+            <option value="paid">✅ Paid</option>
+          </select>
+        </div>
+      </div>
       <div className="field mb0"><label>Access</label>
         <select value={form.locked?'locked':'free'} onChange={e=>setForm(p=>({...p,locked:e.target.value==='locked'}))}>
           <option value="free">Free — client downloads immediately</option>
@@ -1946,7 +2001,7 @@ Log in to download your files.
 /* ══════════════════════════════════════
    BRANDING TAB
 ══════════════════════════════════════ */
-function BrandingTab({session,refreshUser}){
+function BrandingTab({session,refreshUser,onBrandingSaved}){
   const isAgency=session.user.plan==='agency'||session.user.isSuperAdmin;
   const[name,setName]=useState('');
   const[primary,setPrimary]=useState('#6c5ce7');
@@ -1978,6 +2033,7 @@ function BrandingTab({session,refreshUser}){
     document.documentElement.style.setProperty('--p',primary);
     document.documentElement.style.setProperty('--p2',accent);
     setSaved(true);setTimeout(()=>setSaved(false),2000);
+    if(onBrandingSaved)onBrandingSaved(); // tell AdminApp to reload branding
     toast('Branding saved & applied ✓','g');
   };
 
@@ -1986,6 +2042,7 @@ function BrandingTab({session,refreshUser}){
     setName('');setPrimary('#6c5ce7');setAccent('#a29bfe');setRemovePowered(true);setDomain('');setLogoPreview(null);
     document.documentElement.style.setProperty('--p','#6c5ce7');
     document.documentElement.style.setProperty('--p2','#a29bfe');
+    if(onBrandingSaved)onBrandingSaved();
     toast('Branding reset to defaults','p');
   };
 
@@ -2047,7 +2104,18 @@ function BrandingTab({session,refreshUser}){
             <input type="checkbox" checked={removePowered} onChange={e=>setRemovePowered(e.target.checked)} style={{width:15,height:15,accentColor:'var(--p)',cursor:'pointer'}}/>
             Remove "Powered by Shadow" footer
           </label>
-          <div className="field mb0"><label>Custom Domain</label><input placeholder="portal.yourcompany.com" value={domain} onChange={e=>setDomain(e.target.value)}/></div>
+          <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:9,padding:'12px 14px'}}>
+            <div style={{fontSize:12,fontWeight:700,color:'var(--text2)',marginBottom:8}}>🌐 Custom Domain</div>
+            <div style={{fontSize:12,color:'var(--text3)',lineHeight:1.7,marginBottom:10}}>
+              To use <strong style={{color:'var(--text2)'}}>yourcompany.com</strong> instead of the Netlify URL:
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:6,fontSize:12,color:'var(--text2)'}}>
+              <div style={{display:'flex',gap:8}}><span style={{color:'var(--p2)',fontWeight:700,flexShrink:0}}>1.</span><span>Buy a domain on <strong>Namecheap.com</strong> or <strong>Google Domains</strong> (~€10/yr)</span></div>
+              <div style={{display:'flex',gap:8}}><span style={{color:'var(--p2)',fontWeight:700,flexShrink:0}}>2.</span><span>In Netlify → Site Settings → Domain Management → Add custom domain</span></div>
+              <div style={{display:'flex',gap:8}}><span style={{color:'var(--p2)',fontWeight:700,flexShrink:0}}>3.</span><span>Add a <strong>CNAME record</strong> in your domain DNS pointing to your Netlify URL</span></div>
+              <div style={{display:'flex',gap:8}}><span style={{color:'var(--p2)',fontWeight:700,flexShrink:0}}>4.</span><span>Netlify sets up HTTPS automatically — done in ~5 minutes</span></div>
+            </div>
+          </div>
         </div>
 
         <button className="btn btn-g" style={{fontSize:14,padding:13}} onClick={save}>{saved?'✅ Saved!':'💾 Save & Apply Branding'}</button>
@@ -2090,8 +2158,14 @@ function MessagesTab({session,users}){
   const[input,setInput]=useState('');
   const[allConvos,setAllConvos]=useState({});
   const[unread,setUnread]=useState({});
+  const[msgProfile,setMsgProfile]=useState(null);
+  const[msgRatings,setMsgRatings]=useState({});
+  const[ratingTarget,setRatingTarget]=useState(null);
   const inputRef=React.useRef(null);
   const bottomRef=React.useRef(null);
+
+  // Load ratings once
+  useEffect(()=>{(async()=>{const r=await DB.getShared('marketplace:ratings')||{};setMsgRatings(r);})();},[]);
 
   const myEmail=session.user.email;
 
@@ -2202,15 +2276,94 @@ function MessagesTab({session,users}){
         <div style={{fontSize:13}}>Choose someone from the left to start messaging</div>
       </div>:<>
         {/* Header */}
-        <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:12,background:'var(--bg2)'}}>
-          <button onClick={()=>{setActiveConvo(null);setShowChat&&setShowChat(false);}} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:30,height:30,display:'none',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14,className:'mob-back'}} className="mob-back">←</button>
-          <div style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:'#fff',flexShrink:0}}>{initials(activeUser?.name||'')}</div>
-          <div>
-            <div style={{fontWeight:700,fontSize:14}}>{activeUser?.name}</div>
-            <div style={{fontSize:11,color:'var(--text3)'}}>{activeUser?.studio} · {(activeUser?.plan||'free').toUpperCase()}</div>
+        <div style={{padding:'12px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:12,background:'var(--bg2)'}}>
+          <button onClick={()=>{setActiveConvo(null);}} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:30,height:30,display:'none',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14}} className="mob-back">←</button>
+          {/* Clickable avatar — opens profile */}
+          <div style={{display:'flex',alignItems:'center',gap:10,flex:1,cursor:'pointer',padding:'4px 8px',borderRadius:10,transition:'background .12s'}}
+            onClick={()=>setMsgProfile(activeUser)}
+            onMouseOver={e=>e.currentTarget.style.background='var(--bg3)'}
+            onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+            <div style={{position:'relative',flexShrink:0}}>
+              <div style={{width:38,height:38,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#fff'}}>{initials(activeUser?.name||'')}</div>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontWeight:700,fontSize:14}}>{activeUser?.name}</span>
+                {(()=>{const r=msgRatings[activeConvo];return r&&r.count>0?<span style={{fontSize:12,color:'var(--y)',fontWeight:700}}>⭐ {r.avg.toFixed(1)} <span style={{color:'var(--text3)',fontWeight:400}}>({r.count})</span></span>:null;})()}
+                {(()=>{const r=msgRatings[activeConvo];return r&&r.flagged>0?<span style={{background:'rgba(239,68,68,.15)',color:'var(--r)',borderRadius:99,padding:'1px 7px',fontSize:10,fontWeight:700}}>🚩 {r.flagged}</span>:null;})()}
+              </div>
+              <div style={{fontSize:11,color:'var(--text3)'}}>{activeUser?.studio} · {(activeUser?.plan||'free').toUpperCase()} · <span style={{color:'var(--p2)'}}>View profile →</span></div>
+            </div>
           </div>
-          <button onClick={()=>setActiveConvo(null)} style={{marginLeft:'auto',background:'transparent',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:18}}>✕</button>
+          <button onClick={()=>setActiveConvo(null)} style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:18,flexShrink:0}}>✕</button>
         </div>
+
+        {/* Profile Modal */}
+        {msgProfile&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:900,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setMsgProfile(null)}>
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:20,width:'100%',maxWidth:500,maxHeight:'90vh',overflow:'auto',animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+            {/* Cover */}
+            <div style={{height:72,background:'linear-gradient(135deg,var(--p),var(--p2))',borderRadius:'20px 20px 0 0',position:'relative'}}>
+              <div style={{position:'absolute',bottom:-24,left:20,width:52,height:52,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',border:'3px solid var(--bg2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:800,color:'#fff'}}>{initials(msgProfile.name)}</div>
+            </div>
+            <div style={{padding:'34px 20px 20px'}}>
+              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:14}}>
+                <div>
+                  <div style={{fontSize:19,fontWeight:800}}>{msgProfile.name}</div>
+                  <div style={{fontSize:13,color:'var(--text3)',marginTop:2}}>{msgProfile.studio}</div>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginTop:6,flexWrap:'wrap'}}>
+                    <span style={{background:{'pro':'var(--p3)','agency':'var(--b2)','free':'rgba(100,116,139,.15)'}[msgProfile.plan]||'rgba(100,116,139,.15)',color:{'pro':'var(--p2)','agency':'var(--b)','free':'var(--text3)'}[msgProfile.plan]||'var(--text3)',borderRadius:99,padding:'3px 10px',fontSize:11,fontWeight:700}}>{(msgProfile.plan||'FREE').toUpperCase()}</span>
+                    {(()=>{const r=msgRatings[msgProfile.email];return r&&r.count>0?<span style={{fontSize:13,color:'var(--y)',fontWeight:700}}>⭐ {r.avg.toFixed(1)} <span style={{color:'var(--text3)',fontWeight:400,fontSize:11}}>({r.count} review{r.count!==1?'s':''})</span></span>:<span style={{fontSize:12,color:'var(--text3)'}}>No reviews yet</span>;})()}
+                    {(()=>{const r=msgRatings[msgProfile.email];return r&&r.flagged>0?<span style={{background:'rgba(239,68,68,.12)',color:'var(--r)',borderRadius:99,padding:'2px 8px',fontSize:11,fontWeight:700}}>🚩 {r.flagged} report{r.flagged!==1?'s':''}</span>:null;})()}
+                  </div>
+                </div>
+                <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14,flexShrink:0}} onClick={()=>setMsgProfile(null)}>✕</div>
+              </div>
+
+              {/* Reviews section */}
+              {(()=>{
+                const r=msgRatings[msgProfile.email];
+                const reviews=r?.reviews||[];
+                return<div style={{marginBottom:16}}>
+                  <div style={{fontWeight:700,fontSize:13,marginBottom:10,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                    <span>⭐ Reviews ({reviews.length})</span>
+                    {msgProfile.email!==session.user.email&&<button className="btn btn-ghost btn-sm" style={{fontSize:11}} onClick={()=>{setRatingTarget({authorEmail:msgProfile.email,authorName:msgProfile.name,postTitle:'their work'});setMsgProfile(null);}}>+ Write Review</button>}
+                  </div>
+                  {reviews.length===0?<div style={{background:'var(--bg3)',borderRadius:10,padding:'16px',textAlign:'center',color:'var(--text3)',fontSize:13}}>No reviews yet — be the first!</div>:
+                  reviews.slice().reverse().map((rv,i)=><div key={i} style={{background:'var(--bg3)',borderRadius:10,padding:'12px 14px',marginBottom:8}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'#fff'}}>{initials(rv.fromName)}</div>
+                        <span style={{fontWeight:600,fontSize:13}}>{rv.fromName}</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{color:'var(--y)',fontSize:14}}>{'★'.repeat(rv.stars)}{'☆'.repeat(5-rv.stars)}</span>
+                        <span style={{fontSize:10,color:'var(--text3)'}}>{new Date(rv.ts).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    {rv.review&&<div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6}}>{rv.review}</div>}
+                  </div>)}
+                </div>;
+              })()}
+
+              {/* Action buttons */}
+              {msgProfile.email!==session.user.email&&<div style={{display:'flex',gap:8}}>
+                <button className="btn btn-p" style={{flex:1}} onClick={()=>{setMsgProfile(null);}}>💬 Back to Chat</button>
+                <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{setRatingTarget({authorEmail:msgProfile.email,authorName:msgProfile.name,postTitle:'their work'});setMsgProfile(null);}}>⭐ Rate</button>
+              </div>}
+            </div>
+          </div>
+        </div>}
+
+        {/* Inline Rate Modal */}
+        {ratingTarget&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:910,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setRatingTarget(null)}>
+          <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:18,width:'100%',maxWidth:420,animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+            <div style={{padding:'18px 20px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <h3 style={{fontWeight:800,fontSize:16}}>⭐ Rate {ratingTarget.authorName}</h3>
+              <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14}} onClick={()=>setRatingTarget(null)}>✕</div>
+            </div>
+            <RateForm target={ratingTarget} session={session} ratings={msgRatings} setRatings={r=>{setMsgRatings(r);}} onClose={()=>setRatingTarget(null)}/>
+          </div>
+        </div>}
 
         {/* Messages */}
         <div style={{flex:1,overflowY:'auto',padding:'16px 20px',display:'flex',flexDirection:'column',gap:8}}>
@@ -2245,15 +2398,572 @@ function MessagesTab({session,users}){
   </div>;
 }
 
+
+
+/* ── RATE FORM COMPONENT ── */
+function RateForm({target,session,ratings,setRatings,onClose}){
+  const[stars,setStars]=useState(0);
+  const[hover,setHover]=useState(0);
+  const[review,setReview]=useState('');
+  const[busy,setBusy]=useState(false);
+
+  // Check if already rated
+  const myKey=`${session.user.email}→${target.authorEmail}`;
+  const alreadyRated=ratings[target.authorEmail]?.reviews?.some(r=>r.from===session.user.email);
+
+  const submit=async()=>{
+    if(stars===0){toast('Please select a star rating','r');return;}
+    setBusy(true);
+    const all=await DB.getShared('marketplace:ratings')||{};
+    const existing=all[target.authorEmail]||{count:0,total:0,avg:0,flagged:0,reviews:[]};
+    // Prevent double rating
+    if(existing.reviews?.some(r=>r.from===session.user.email)){
+      toast('You already rated this user','r');setBusy(false);return;
+    }
+    const newReviews=[...(existing.reviews||[]),{from:session.user.email,fromName:session.user.name,stars,review:review.trim(),ts:Date.now()}];
+    const newTotal=existing.total+stars;
+    const newCount=existing.count+1;
+    all[target.authorEmail]={...existing,count:newCount,total:newTotal,avg:+(newTotal/newCount).toFixed(1),reviews:newReviews};
+    await DB.setShared('marketplace:ratings',all);
+    setRatings(all);
+    toast(`⭐ Review submitted for ${target.authorName}`,'g');
+    setBusy(false);onClose();
+  };
+
+  const labels=['','Terrible','Poor','Okay','Good','Excellent'];
+
+  return<div style={{padding:'16px 20px 20px'}}>
+    {alreadyRated?<div style={{textAlign:'center',padding:'20px 0'}}>
+      <div style={{fontSize:32,marginBottom:8}}>✅</div>
+      <div style={{fontWeight:700,marginBottom:4}}>Already rated</div>
+      <div style={{fontSize:13,color:'var(--text3)'}}>You have already submitted a review for this user.</div>
+      <button className="btn btn-ghost btn-full" style={{marginTop:16}} onClick={onClose}>Close</button>
+    </div>:<>
+      <div style={{fontSize:13,color:'var(--text2)',marginBottom:16}}>Re: <strong>{target.postTitle}</strong></div>
+      {/* Stars */}
+      <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:8}}>
+        {[1,2,3,4,5].map(i=><span key={i} style={{fontSize:36,cursor:'pointer',color:(hover||stars)>=i?'#f59e0b':'var(--border2)',transition:'color .1s,transform .1s',transform:(hover||stars)>=i?'scale(1.2)':'scale(1)'}}
+          onClick={()=>setStars(i)}
+          onMouseOver={()=>setHover(i)}
+          onMouseOut={()=>setHover(0)}>★</span>)}
+      </div>
+      {stars>0&&<div style={{textAlign:'center',fontSize:13,color:'var(--y)',fontWeight:700,marginBottom:14}}>{labels[stars]}</div>}
+      <div className="field mb14">
+        <label>Review (optional)</label>
+        <textarea placeholder="Share your experience working with this person…" value={review} onChange={e=>setReview(e.target.value)} style={{minHeight:80}}/>
+      </div>
+      <div style={{display:'flex',gap:10}}>
+        <button className="btn btn-p" style={{flex:1}} onClick={submit} disabled={busy||stars===0}>{busy?'Submitting…':'Submit Review'}</button>
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+      </div>
+    </>}
+  </div>;
+}
+
+/* ── REPORT FORM COMPONENT ── */
+function ReportForm({target,session,ratings,setRatings,onClose}){
+  const[reason,setReason]=useState('');
+  const[details,setDetails]=useState('');
+  const[busy,setBusy]=useState(false);
+
+  const REASONS=['Did not deliver work','Did not pay','Fake profile / scam','Inappropriate content','Spam','Harassment','Other'];
+
+  const submit=async()=>{
+    if(!reason){toast('Please select a reason','r');return;}
+    setBusy(true);
+    const all=await DB.getShared('marketplace:ratings')||{};
+    const existing=all[target.authorEmail]||{count:0,total:0,avg:0,flagged:0,reviews:[],reports:[]};
+    // Check if already reported by this user
+    if(existing.reports?.some(r=>r.from===session.user.email)){
+      toast('You already reported this user','r');setBusy(false);return;
+    }
+    const reports=[...(existing.reports||[]),{from:session.user.email,reason,details:details.trim(),ts:Date.now()}];
+    all[target.authorEmail]={...existing,flagged:(existing.flagged||0)+1,reports};
+    await DB.setShared('marketplace:ratings',all);
+    setRatings(all);
+    setBusy(false);onClose();
+
+    const flags=all[target.authorEmail].flagged;
+    if(flags>=3){
+      toast(`⚠️ ${target.authorName} has been flagged ${flags} times — SuperAdmin notified`,'r');
+    } else {
+      toast(`🚩 Report submitted. Thank you for keeping Shadow Portal safe.`,'g');
+    }
+  };
+
+  return<div style={{padding:'16px 20px 20px'}}>
+    <div style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.2)',borderRadius:10,padding:'12px 14px',marginBottom:16,fontSize:13,color:'var(--r)',lineHeight:1.6}}>
+      Reporting <strong>{target.authorName}</strong>. Reports are reviewed by admins. Repeated violations result in account suspension.
+    </div>
+    <div className="field mb12"><label>Reason *</label>
+      <select value={reason} onChange={e=>setReason(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:9,padding:'10px 14px',color:reason?'var(--text)':'var(--text3)',fontSize:14,fontFamily:'var(--font)',width:'100%',cursor:'pointer'}}>
+        <option value="">Select a reason…</option>
+        {REASONS.map(r=><option key={r} value={r}>{r}</option>)}
+      </select>
+    </div>
+    <div className="field mb16"><label>Additional details (optional)</label>
+      <textarea placeholder="Describe what happened…" value={details} onChange={e=>setDetails(e.target.value)} style={{minHeight:70}}/>
+    </div>
+    <div style={{display:'flex',gap:10}}>
+      <button className="btn btn-r" style={{flex:1}} onClick={submit} disabled={busy||!reason}>{busy?'Submitting…':'Submit Report'}</button>
+      <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+    </div>
+    <div style={{fontSize:11,color:'var(--text3)',textAlign:'center',marginTop:10}}>3+ reports → account automatically flagged for admin review</div>
+  </div>;
+}
+
+/* ══════════════════════════════════════
+   MARKETPLACE TAB
+══════════════════════════════════════ */
+const JOB_CATEGORIES=['All','Branding & Logo','Web Design','Mobile App','UI/UX','Illustration','Motion & Video','Copywriting','Social Media','Photography','3D Design','SEO & Marketing','Development'];
+
+function MarketplaceTab({session}){
+  const[channel,setChannel]=useState('clients'); // clients | freelancers
+  const[search,setSearch]=useState('');
+  const[category,setCategory]=useState('All');
+  const[modal,setModal]=useState(false);
+  const[postings,setPostings]=useState([]);
+  const[myPostingsModal,setMyPostingsModal]=useState(null);
+  const[viewPost,setViewPost]=useState(null);
+  const[viewProfile,setViewProfile]=useState(null);
+  const[msgTarget,setMsgTarget]=useState(null);
+  const[rateTarget,setRateTarget]=useState(null); // {authorEmail, authorName, postTitle}
+  const[reportTarget,setReportTarget]=useState(null);
+  const[ratings,setRatings]=useState({});
+  const[form,setForm]=useState({title:'',desc:'',category:'Branding & Logo',budget:'',budgetType:'fixed',timeline:'',contact:''});
+
+  useEffect(()=>{loadPostings();},[channel]);
+  useEffect(()=>{
+    (async()=>{const r=await DB.getShared('marketplace:ratings')||{};setRatings(r);})();
+  },[]);
+
+  const loadPostings=async()=>{
+    const data=await DB.getShared(`market:${channel}`)||[];
+    setPostings(data);
+  };
+
+  const filtered=postings.filter(p=>{
+    const matchCat=category==='All'||p.category===category;
+    const q=search.toLowerCase();
+    const matchSearch=!q||p.title.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)||(p.authorName||'').toLowerCase().includes(q);
+    return matchCat&&matchSearch;
+  }).sort((a,b)=>b.ts-a.ts);
+
+  const myPostings=postings.filter(p=>p.authorEmail===session.user.email);
+
+  const post=async()=>{
+    if(!form.title||!form.desc){toast('Please fill in title and description','r');return;}
+    const data=await DB.getShared(`market:${channel}`)||[];
+    const newPost={
+      id:`post_${Date.now()}`,
+      title:form.title.trim(),desc:form.desc.trim(),
+      category:form.category,budget:form.budget,budgetType:form.budgetType,
+      timeline:form.timeline,contact:form.contact.trim()||session.user.email,
+      authorEmail:session.user.email,authorName:session.user.name,
+      authorStudio:session.user.studio,authorPlan:session.user.plan,
+      ts:Date.now(),replies:0,
+    };
+    data.unshift(newPost);
+    await DB.setShared(`market:${channel}`,data);
+    setPostings(data);
+    setModal(false);
+    setForm({title:'',desc:'',category:'Branding & Logo',budget:'',budgetType:'fixed',timeline:'',contact:''});
+    toast('Posted successfully ✓','g');
+  };
+
+  const deletePost=async(postId)=>{
+    if(!confirm('Delete this posting?'))return;
+    const data=await DB.getShared(`market:${channel}`)||[];
+    const updated=data.filter(p=>p.id!==postId);
+    await DB.setShared(`market:${channel}`,updated);
+    setPostings(updated);
+    toast('Posting deleted','p');
+  };
+
+  const isClient=channel==='clients';
+  const channelColor=isClient?'var(--b)':'var(--g)';
+  const channelBg=isClient?'var(--b2)':'var(--g2)';
+
+  return<div>
+    {/* Header */}
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:10}}>
+      <div>
+        <div style={{fontSize:20,fontWeight:800}}>🛍️ Marketplace</div>
+        <div style={{fontSize:13,color:'var(--text2)',marginTop:2}}>{filtered.length} posting{filtered.length!==1?'s':''} · {isClient?'Clients looking for freelancers':'Freelancers offering services'}</div>
+      </div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+        <button className="btn btn-ghost btn-sm" onClick={()=>setMyPostingsModal(true)} style={{position:'relative'}}>
+          📋 My Postings {myPostings.length>0&&<span style={{position:'absolute',top:-6,right:-6,background:'var(--r)',color:'#fff',borderRadius:99,fontSize:10,fontWeight:800,padding:'1px 5px'}}>{myPostings.length}</span>}
+        </button>
+        <button className="btn btn-p btn-sm" onClick={()=>setModal(true)}>+ Post {isClient?'Job Request':'Opportunity'}</button>
+      </div>
+    </div>
+
+    {/* Channel toggle */}
+    <div style={{display:'flex',background:'var(--bg3)',borderRadius:12,padding:4,gap:4,marginBottom:20}}>
+      <button onClick={()=>{setChannel('clients');setCategory('All');setSearch('');}} style={{flex:1,padding:'10px',border:'none',borderRadius:9,cursor:'pointer',fontFamily:'var(--font)',fontWeight:700,fontSize:13,background:channel==='clients'?'linear-gradient(135deg,var(--b),#0ea5e9)':'transparent',color:channel==='clients'?'#fff':'var(--text2)',transition:'all .15s'}}>
+        🔍 Clients Looking for Freelancers
+      </button>
+      <button onClick={()=>{setChannel('freelancers');setCategory('All');setSearch('');}} style={{flex:1,padding:'10px',border:'none',borderRadius:9,cursor:'pointer',fontFamily:'var(--font)',fontWeight:700,fontSize:13,background:channel==='freelancers'?'linear-gradient(135deg,var(--g),#10b981)':'transparent',color:channel==='freelancers'?'#fff':'var(--text2)',transition:'all .15s'}}>
+        💼 Freelancers Offering Services
+      </button>
+    </div>
+
+    {/* Search + filters */}
+    <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+      <div className="search-wrap" style={{flex:1,minWidth:200}}>
+        <span className="search-icon">🔍</span>
+        <input className="search-input" placeholder={`Search ${isClient?'job requests':'opportunities'}…`} value={search} onChange={e=>setSearch(e.target.value)}/>
+      </div>
+      <select value={category} onChange={e=>setCategory(e.target.value)} style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:9,padding:'9px 14px',color:'var(--text)',fontSize:13,cursor:'pointer',fontFamily:'var(--font)'}}>
+        {JOB_CATEGORIES.map(c=><option key={c}>{c}</option>)}
+      </select>
+    </div>
+
+    {/* Category pills */}
+    <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:20}}>
+      {JOB_CATEGORIES.slice(0,8).map(c=><button key={c} onClick={()=>setCategory(c)} style={{padding:'5px 12px',borderRadius:99,border:`1px solid ${category===c?channelColor:'var(--border)'}`,background:category===c?channelBg:'transparent',color:category===c?channelColor:'var(--text3)',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'var(--font)',transition:'all .15s'}}>{c}</button>)}
+    </div>
+
+    {/* Postings grid */}
+    {filtered.length===0?<div style={{textAlign:'center',padding:'60px 20px',color:'var(--text3)'}}>
+      <div style={{fontSize:48,marginBottom:12}}>{isClient?'🔍':'💼'}</div>
+      <div style={{fontWeight:700,fontSize:16,marginBottom:6,color:'var(--text2)'}}>{search||category!=='All'?'No postings match your search':'No postings yet'}</div>
+      <div style={{fontSize:13,marginBottom:20}}>{search||category!=='All'?'Try different keywords or category':'Be the first to post!'}</div>
+      <button className="btn btn-p" onClick={()=>setModal(true)}>+ Post {isClient?'Job Request':'Opportunity'}</button>
+    </div>:
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      {filtered.map(p=>{
+        const isOwn=p.authorEmail===session.user.email;
+        return<div key={p.id} style={{background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:14,padding:20,transition:'all .15s',cursor:'pointer'}}
+          onClick={()=>setViewPost(p)}
+          onMouseOver={e=>e.currentTarget.style.borderColor=channelColor}
+          onMouseOut={e=>e.currentTarget.style.borderColor='var(--border)'}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,flexWrap:'wrap'}}>
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:8}}>
+                <span style={{fontWeight:800,fontSize:15}}>{p.title}</span>
+                <span style={{background:channelBg,color:channelColor,borderRadius:99,padding:'2px 10px',fontSize:11,fontWeight:700}}>{p.category}</span>
+                {isOwn&&<span style={{background:'rgba(108,92,231,.15)',color:'var(--p2)',borderRadius:99,padding:'2px 8px',fontSize:10,fontWeight:700}}>Your post</span>}
+              </div>
+              <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.7,marginBottom:12,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{p.desc}</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',fontSize:12,alignItems:'center'}}>
+                {p.budget&&<span style={{background:'rgba(16,185,129,.12)',color:'var(--g)',borderRadius:7,padding:'4px 10px',fontWeight:700}}>💰 €{p.budget}{p.budgetType==='hourly'?'/hr':p.budgetType==='negotiable'?' negotiable':' fixed'}</span>}
+                {p.timeline&&<span style={{background:'var(--bg3)',color:'var(--text2)',borderRadius:7,padding:'4px 10px'}}>⏱ {p.timeline}</span>}
+                <span style={{background:'var(--bg3)',color:'var(--text3)',borderRadius:7,padding:'4px 10px'}}>📅 {new Date(p.ts).toLocaleDateString('en',{month:'short',day:'numeric'})}</span>
+                <span style={{color:'var(--text3)',fontSize:11}}>Click to view full post →</span>
+              </div>
+            </div>
+            {/* Author card — clickable to profile */}
+            <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8,flexShrink:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,cursor:'pointer',padding:'6px 10px',borderRadius:10,transition:'background .12s'}}
+                onClick={e=>{e.stopPropagation();setViewProfile(p);}}
+                onMouseOver={e=>e.currentTarget.style.background='var(--bg3)'}
+                onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:12,textAlign:'right'}}>{p.authorName}</div>
+                  <div style={{fontSize:10,color:'var(--text3)',textAlign:'right'}}>{p.authorStudio}</div>
+                  {(()=>{const r=ratings[p.authorEmail];return r&&r.count>0?<div style={{fontSize:10,color:'var(--y)',textAlign:'right',marginTop:1}}>{'⭐'.repeat(Math.round(r.avg))} {r.avg.toFixed(1)} ({r.count})</div>:<div style={{fontSize:10,color:'var(--p2)',textAlign:'right',marginTop:1}}>View profile →</div>;})()}
+                </div>
+                <div style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:'#fff',flexShrink:0}}>{initials(p.authorName)}</div>
+              </div>
+              {!isOwn&&<div style={{display:'flex',gap:6,flexWrap:'wrap'}} onClick={e=>e.stopPropagation()}>
+                <button className="btn btn-p btn-sm" onClick={()=>setMsgTarget(p)}>💬 Message</button>
+                <button className="btn btn-ghost btn-sm" onClick={()=>setRateTarget({authorEmail:p.authorEmail,authorName:p.authorName,postTitle:p.title})}>⭐ Rate</button>
+                <button className="btn btn-ghost btn-sm" style={{color:'var(--r)'}} onClick={()=>setReportTarget({authorEmail:p.authorEmail,authorName:p.authorName,postTitle:p.title,postId:p.id})}>🚩 Report</button>
+              </div>}
+              {isOwn&&<button className="btn btn-ghost btn-sm" style={{color:'var(--r)'}} onClick={e=>{e.stopPropagation();deletePost(p.id);}}>✕ Delete</button>}
+            </div>
+          </div>
+        </div>;
+      })}
+    </div>}
+
+    {/* ── POST DETAIL MODAL ── */}
+    {viewPost&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:900,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setViewPost(null)}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:20,width:'100%',maxWidth:600,maxHeight:'90vh',overflow:'auto',animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+        <div style={{padding:'20px 22px 0',display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
+          <div style={{flex:1}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:6}}>
+              <h3 style={{fontSize:18,fontWeight:800}}>{viewPost.title}</h3>
+              <span style={{background:channelBg,color:channelColor,borderRadius:99,padding:'3px 12px',fontSize:12,fontWeight:700}}>{viewPost.category}</span>
+            </div>
+          </div>
+          <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14,flexShrink:0}} onClick={()=>setViewPost(null)}>✕</div>
+        </div>
+        <div style={{padding:'16px 22px'}}>
+          {/* Author row */}
+          <div style={{display:'flex',alignItems:'center',gap:12,padding:14,background:'var(--bg3)',borderRadius:12,marginBottom:18,cursor:'pointer'}}
+            onClick={()=>{setViewProfile(viewPost);setViewPost(null);}}>
+            <div style={{width:44,height:44,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:800,color:'#fff',flexShrink:0}}>{initials(viewPost.authorName)}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:14}}>{viewPost.authorName}</div>
+              <div style={{fontSize:12,color:'var(--text3)',marginTop:1}}>{viewPost.authorStudio} · <span style={{color:{'pro':'var(--p2)','agency':'var(--b)','free':'var(--text3)'}[viewPost.authorPlan]||'var(--text3)'}}>{(viewPost.authorPlan||'free').toUpperCase()}</span></div>
+            </div>
+            <span style={{fontSize:12,color:'var(--p2)'}}>View full profile →</span>
+          </div>
+          {/* Description */}
+          <div style={{fontSize:14,color:'var(--text2)',lineHeight:1.8,marginBottom:18,whiteSpace:'pre-wrap'}}>{viewPost.desc}</div>
+          {/* Details */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:20}}>
+            {viewPost.budget&&<div style={{background:'rgba(16,185,129,.08)',border:'1px solid rgba(16,185,129,.2)',borderRadius:10,padding:12,textAlign:'center'}}>
+              <div style={{fontSize:11,color:'var(--text3)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:4}}>Budget</div>
+              <div style={{fontSize:20,fontWeight:900,color:'var(--g)'}}>€{viewPost.budget}</div>
+              <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{viewPost.budgetType==='hourly'?'per hour':viewPost.budgetType==='negotiable'?'negotiable':'fixed price'}</div>
+            </div>}
+            {viewPost.timeline&&<div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:12,textAlign:'center'}}>
+              <div style={{fontSize:11,color:'var(--text3)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:4}}>Timeline</div>
+              <div style={{fontSize:16,fontWeight:700}}>{viewPost.timeline}</div>
+            </div>}
+          </div>
+          {viewPost.contact&&viewPost.contact!==viewPost.authorEmail&&<div style={{background:'var(--bg3)',borderRadius:10,padding:'10px 14px',marginBottom:16,fontSize:13}}>
+            <span style={{color:'var(--text3)'}}>Contact: </span><span style={{fontWeight:600}}>{viewPost.contact}</span>
+          </div>}
+          <div style={{fontSize:11,color:'var(--text3)',marginBottom:16}}>Posted {new Date(viewPost.ts).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
+          {viewPost.authorEmail!==session.user.email&&<div style={{display:'flex',gap:10}}>
+            <button className="btn btn-p" style={{flex:1,fontSize:14,padding:12}} onClick={()=>{setMsgTarget(viewPost);setViewPost(null);}}>💬 Send Message</button>
+            <button className="btn btn-ghost" style={{flex:1,fontSize:14,padding:12}} onClick={()=>{navigator.clipboard.writeText(viewPost.contact||viewPost.authorEmail).then(()=>toast('📧 Contact copied!','g'));}}>📧 Copy Contact</button>
+          </div>}
+        </div>
+      </div>
+    </div>}
+
+    {/* ── PROFILE MODAL ── */}
+    {viewProfile&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:910,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setViewProfile(null)}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:20,width:'100%',maxWidth:520,maxHeight:'90vh',overflow:'auto',animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+        {/* Cover */}
+        <div style={{height:80,background:`linear-gradient(135deg,var(--p),var(--p2))`,borderRadius:'20px 20px 0 0',position:'relative'}}>
+          <div style={{position:'absolute',bottom:-28,left:22,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,var(--p),var(--p2))',border:'3px solid var(--bg2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:800,color:'#fff'}}>{initials(viewProfile.authorName)}</div>
+        </div>
+        <div style={{padding:'36px 22px 22px'}}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
+            <div>
+              <div style={{fontSize:20,fontWeight:800}}>{viewProfile.authorName}</div>
+              <div style={{fontSize:13,color:'var(--text3)',marginTop:2}}>{viewProfile.authorStudio}</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginTop:6,flexWrap:'wrap'}}>
+                <span style={{background:{'pro':'var(--p3)','agency':'var(--b2)','free':'rgba(100,116,139,.15)'}[viewProfile.authorPlan]||'rgba(100,116,139,.15)',color:{'pro':'var(--p2)','agency':'var(--b)','free':'var(--text3)'}[viewProfile.authorPlan]||'var(--text3)',borderRadius:99,padding:'3px 10px',fontSize:11,fontWeight:700}}>{(viewProfile.authorPlan||'FREE').toUpperCase()}</span>
+                {(()=>{const r=ratings[viewProfile.authorEmail];return r&&r.count>0?<span style={{fontSize:13,color:'var(--y)',fontWeight:700}}>⭐ {r.avg.toFixed(1)} <span style={{color:'var(--text3)',fontWeight:400,fontSize:11}}>({r.count} review{r.count!==1?'s':''})</span></span>:<span style={{fontSize:12,color:'var(--text3)'}}>No reviews yet</span>;})()}
+                {(()=>{const r=ratings[viewProfile.authorEmail];return r&&r.flagged>0?<span style={{background:'rgba(239,68,68,.12)',color:'var(--r)',borderRadius:99,padding:'2px 8px',fontSize:11,fontWeight:700}}>🚩 {r.flagged} report{r.flagged!==1?'s':''}</span>:null;})()}
+              </div>
+            </div>
+            <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14,flexShrink:0}} onClick={()=>setViewProfile(null)}>✕</div>
+          </div>
+          {/* Stats from their postings */}
+          {(()=>{
+            const theirPosts=postings.filter(x=>x.authorEmail===viewProfile.authorEmail);
+            return theirPosts.length>0&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:16}}>
+              <div style={{background:'var(--bg3)',borderRadius:10,padding:12,textAlign:'center'}}>
+                <div style={{fontSize:22,fontWeight:900}}>{theirPosts.length}</div>
+                <div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Posting{theirPosts.length!==1?'s':''} on {isClient?'this channel':'this channel'}</div>
+              </div>
+              {theirPosts.filter(x=>x.budget).length>0&&<div style={{background:'var(--bg3)',borderRadius:10,padding:12,textAlign:'center'}}>
+                <div style={{fontSize:22,fontWeight:900,color:'var(--g)'}}>€{Math.max(...theirPosts.filter(x=>x.budget).map(x=>+x.budget))}</div>
+                <div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Max budget/rate</div>
+              </div>}
+            </div>;
+          })()}
+          {/* Their other postings */}
+          {(()=>{
+            const theirPosts=postings.filter(x=>x.authorEmail===viewProfile.authorEmail);
+            return theirPosts.length>0&&<div style={{marginBottom:16}}>
+              <div style={{fontWeight:700,fontSize:13,marginBottom:10}}>Their Postings ({theirPosts.length})</div>
+              {theirPosts.map(tp=><div key={tp.id} style={{padding:'10px 12px',background:'var(--bg3)',borderRadius:9,marginBottom:6,cursor:'pointer',transition:'background .12s'}}
+                onClick={()=>{setViewPost(tp);setViewProfile(null);}}
+                onMouseOver={e=>e.currentTarget.style.background='var(--bg4)'}
+                onMouseOut={e=>e.currentTarget.style.background='var(--bg3)'}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:13}}>{tp.title}</div>
+                    <div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{tp.category}{tp.budget?` · €${tp.budget}`:''}</div>
+                  </div>
+                  <span style={{fontSize:11,color:'var(--p2)',flexShrink:0}}>View →</span>
+                </div>
+              </div>)}
+            </div>;
+          })()}
+          {viewProfile.contact&&<div style={{background:'var(--bg3)',borderRadius:10,padding:'10px 14px',marginBottom:14,fontSize:13}}>
+            <span style={{color:'var(--text3)'}}>Contact: </span><span style={{fontWeight:600}}>{viewProfile.contact}</span>
+          </div>}
+          {viewProfile.authorEmail!==session.user.email&&<div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <button className="btn btn-p" style={{flex:1,fontSize:13,padding:10}} onClick={()=>{setMsgTarget(viewProfile);setViewProfile(null);}}>💬 Message</button>
+            <button className="btn btn-ghost" style={{flex:1,fontSize:13,padding:10}} onClick={()=>setRateTarget({authorEmail:viewProfile.authorEmail,authorName:viewProfile.authorName,postTitle:'their work'})}>⭐ Rate</button>
+            <button className="btn btn-ghost" style={{flex:1,fontSize:13,padding:10,color:'var(--r)'}} onClick={()=>{setReportTarget({authorEmail:viewProfile.authorEmail,authorName:viewProfile.authorName,postTitle:'',postId:''});setViewProfile(null);}}>🚩 Report</button>
+          </div>}
+        </div>
+      </div>
+    </div>}
+
+    {/* ── RATE MODAL ── */}
+    {rateTarget&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:930,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setRateTarget(null)}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:18,width:'100%',maxWidth:420,animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+        <div style={{padding:'18px 20px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <h3 style={{fontWeight:800,fontSize:16}}>⭐ Rate {rateTarget.authorName}</h3>
+          <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14}} onClick={()=>setRateTarget(null)}>✕</div>
+        </div>
+        <RateForm target={rateTarget} session={session} ratings={ratings} setRatings={setRatings} onClose={()=>setRateTarget(null)}/>
+      </div>
+    </div>}
+
+    {/* ── REPORT MODAL ── */}
+    {reportTarget&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:930,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setReportTarget(null)}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:18,width:'100%',maxWidth:420,animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+        <div style={{padding:'18px 20px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <h3 style={{fontWeight:800,fontSize:16}}>🚩 Report {reportTarget.authorName}</h3>
+          <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14}} onClick={()=>setReportTarget(null)}>✕</div>
+        </div>
+        <ReportForm target={reportTarget} session={session} ratings={ratings} setRatings={setRatings} onClose={()=>setReportTarget(null)}/>
+      </div>
+    </div>}
+
+    {/* ── QUICK MESSAGE MODAL ── */}
+    {msgTarget&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:920,display:'flex',alignItems:'center',justifyContent:'center',padding:16,backdropFilter:'blur(8px)'}} onClick={()=>setMsgTarget(null)}>
+      <div style={{background:'var(--bg2)',border:'1px solid var(--border2)',borderRadius:18,width:'100%',maxWidth:460,animation:'modalIn .18s ease'}} onClick={e=>e.stopPropagation()}>
+        <div style={{padding:'18px 20px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div>
+            <h3 style={{fontWeight:800,fontSize:16}}>💬 Message {msgTarget.authorName}</h3>
+            <div style={{fontSize:12,color:'var(--text3)',marginTop:2}}>Re: {msgTarget.title}</div>
+          </div>
+          <div style={{background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:7,width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',color:'var(--text2)',fontSize:14}} onClick={()=>setMsgTarget(null)}>✕</div>
+        </div>
+        <div style={{padding:'16px 20px 20px'}}>
+          <textarea id="mkt-msg-input" defaultValue={`Hi ${msgTarget.authorName}, I saw your posting "${msgTarget.title}" and I'm interested. `}
+            style={{width:'100%',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:10,padding:'12px 14px',color:'var(--text)',fontSize:13,outline:'none',resize:'none',fontFamily:'var(--font)',lineHeight:1.6,minHeight:100}}/>
+          <div style={{display:'flex',gap:10,marginTop:12}}>
+            <button className="btn btn-p" style={{flex:1,fontSize:14,padding:12}} onClick={async()=>{
+              const text=document.getElementById('mkt-msg-input').value.trim();
+              if(!text)return;
+              const myEmail=session.user.email;
+              const toEmail=msgTarget.authorEmail;
+              const key=[myEmail,toEmail].sort().join('__').replace(/[@.]/g,'_');
+              const existing=await DB.getShared(`convo:${key}`)||[];
+              const msg={id:`msg_${Date.now()}`,from:myEmail,fromName:session.user.name,text,ts:Date.now()};
+              await DB.setShared(`convo:${key}`,[...existing,msg]);
+              setMsgTarget(null);
+              toast(`Message sent to ${msgTarget.authorName} ✓`,'g');
+            }}>Send Message</button>
+            <button className="btn btn-ghost" onClick={()=>setMsgTarget(null)}>Cancel</button>
+          </div>
+          <div style={{textAlign:'center',fontSize:11,color:'var(--text3)',marginTop:10}}>Message will appear in the Messages tab</div>
+        </div>
+      </div>
+    </div>}
+
+    {/* My Postings Modal */}
+    <Modal open={!!myPostingsModal} onClose={()=>setMyPostingsModal(null)} title="📋 My Postings"
+      footer={<button className="btn btn-ghost btn-full" onClick={()=>setMyPostingsModal(null)}>Close</button>}>
+      {myPostings.length===0?<div style={{textAlign:'center',padding:'30px',color:'var(--text3)'}}>You have not posted anything yet.</div>:
+      myPostings.map(p=><div key={p.id} style={{padding:14,borderRadius:10,border:'1px solid var(--border)',marginBottom:8}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8}}>
+          <div>
+            <div style={{fontWeight:700,fontSize:13,marginBottom:4}}>{p.title}</div>
+            <div style={{fontSize:11,color:'var(--text3)',display:'flex',gap:8}}>
+              <span>{p.category}</span>
+              {p.budget&&<span>€{p.budget}{p.budgetType==='hourly'?'/hr':''}</span>}
+              <span>{new Date(p.ts).toLocaleDateString()}</span>
+              <span style={{color:p.authorEmail===session.user.email&&channel==='clients'?'var(--b)':'var(--g)'}}>
+                {postings.find(x=>x.id===p.id)?'Active':'—'}
+              </span>
+            </div>
+          </div>
+          <button className="btn btn-ghost btn-sm" style={{color:'var(--r)',flexShrink:0}} onClick={()=>deletePost(p.id)}>✕ Delete</button>
+        </div>
+      </div>)}
+    </Modal>
+
+    {/* New Post Modal */}
+    <Modal open={modal} onClose={()=>setModal(false)}
+      title={isClient?'🔍 Post a Job Request':'💼 Post a Service / Opportunity'}
+      footer={<><button className="btn btn-p" style={{flex:1}} onClick={post}>Post</button><button className="btn btn-ghost" onClick={()=>setModal(false)}>Cancel</button></>}>
+      <div className="field mb10"><label>{isClient?'What do you need? *':'What do you offer? *'}</label>
+        <input placeholder={isClient?'e.g. Logo design for my startup':'e.g. Professional brand identity design'} value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))}/>
+      </div>
+      <div className="field mb10"><label>Category *</label>
+        <select value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))}>
+          {JOB_CATEGORIES.slice(1).map(c=><option key={c}>{c}</option>)}
+        </select>
+      </div>
+      <div className="field mb10"><label>{isClient?'Describe the project *':'Describe your service *'}</label>
+        <textarea placeholder={isClient?'Describe what you need, your brand, style preferences…':'Describe what you offer, your experience, past work…'} value={form.desc} onChange={e=>setForm(p=>({...p,desc:e.target.value}))} style={{minHeight:80}}/>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+        <div className="field mb0"><label>{isClient?'Your Budget (€)':'Your Rate (€)'}</label>
+          <input type="number" placeholder="e.g. 500" value={form.budget} onChange={e=>setForm(p=>({...p,budget:e.target.value}))}/>
+        </div>
+        <div className="field mb0"><label>Price Type</label>
+          <select value={form.budgetType} onChange={e=>setForm(p=>({...p,budgetType:e.target.value}))}>
+            <option value="fixed">Fixed Price</option>
+            <option value="hourly">Hourly Rate</option>
+            <option value="negotiable">Negotiable</option>
+          </select>
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}}>
+        <div className="field mb0"><label>Timeline</label>
+          <input placeholder="e.g. 2 weeks" value={form.timeline} onChange={e=>setForm(p=>({...p,timeline:e.target.value}))}/>
+        </div>
+        <div className="field mb0"><label>Contact (email/link)</label>
+          <input placeholder={session.user.email} value={form.contact} onChange={e=>setForm(p=>({...p,contact:e.target.value}))}/>
+        </div>
+      </div>
+      <div style={{background:'var(--bg3)',borderRadius:9,padding:'10px 12px',fontSize:12,color:'var(--text3)'}}>
+        📢 Your posting will be visible to all Shadow Portal users. Your name and studio will be shown.
+      </div>
+    </Modal>
+  </div>;
+}
+
 /* ══════════════════════════════════════
    PLAN TAB
 ══════════════════════════════════════ */
 function PlanTab({session,refreshUser}){
   const p=session.user.plan||'free';
   const plans=[
-    {id:'free',name:'Free',price:0,features:['2 clients','2 projects','Basic file vault'],locked:['Payment locks','Email notifications','Branding']},
-    {id:'pro',name:'Pro',price:30,features:['Unlimited clients','Unlimited projects','Payment-locked files','Email notifications'],locked:['Custom branding','Remove footer']},
-    {id:'agency',name:'Agency',price:150,features:['Everything in Pro','Upload logo','Brand colors','Custom domain','Remove Shadow footer'],locked:[]},
+    {
+      id:'free',name:'Free',price:0,color:'var(--text3)',
+      tagline:'Get started for free',
+      features:[
+        {icon:'👥',text:'Up to 2 clients'},
+        {icon:'📁',text:'Up to 2 projects'},
+        {icon:'🔐',text:'Basic file vault'},
+        {icon:'💬',text:'Messages & Marketplace'},
+      ],
+      locked:[
+        {icon:'🔒',text:'Payment-locked files (clients must pay to download)'},
+        {icon:'🔒',text:'Email notifications'},
+        {icon:'🔒',text:'White-label branding'},
+      ]
+    },
+    {
+      id:'pro',name:'Pro',price:30,color:'var(--p2)',
+      tagline:'For serious freelancers',
+      badge:'Most Popular',
+      features:[
+        {icon:'👥',text:'Unlimited clients'},
+        {icon:'📁',text:'Unlimited projects'},
+        {icon:'🔐',text:'Payment-locked files — clients pay, files auto-unlock'},
+        {icon:'📧',text:'Automated email notifications'},
+        {icon:'💬',text:'Messages & Marketplace'},
+        {icon:'💸',text:'Withdrawal system (PayPal, Wise, Bank, Crypto)'},
+      ],
+      locked:[
+        {icon:'🔒',text:'White-label branding (your logo & colors)'},
+        {icon:'🔒',text:'Remove "Shadow Portal" footer from client view'},
+      ]
+    },
+    {
+      id:'agency',name:'Agency',price:150,color:'var(--b)',
+      tagline:'Sell the portal as your own product',
+      features:[
+        {icon:'✅',text:'Everything in Pro — unlimited clients, projects, payments'},
+        {icon:'🎨',text:'Upload YOUR logo — replaces the "S" icon everywhere'},
+        {icon:'🖌️',text:'Set your brand colors — purple becomes your studio color'},
+        {icon:'🏢',text:'Your studio name in the top-left instead of "shadow."'},
+        {icon:'🙈',text:'Remove "Powered by Shadow Portal" — clients see only YOUR brand'},
+        {icon:'🌐',text:'Custom domain via Netlify — point yourcompany.com to your portal (requires domain purchase)'},
+        {icon:'👔',text:'Sell this portal to your clients as your own white-label tool'},
+      ],
+      locked:[]
+    },
   ];
 
   const isSA=session.user.isSuperAdmin;
@@ -2338,16 +3048,45 @@ function PlanTab({session,refreshUser}){
     <div style={{marginBottom:24}}><div style={{fontSize:20,fontWeight:800}}>My Plan</div><div style={{color:'var(--text2)',fontSize:13}}>Manage your subscription</div></div>
     <div className="alert alert-p mb24">💳 Currently on <strong>{p.charAt(0).toUpperCase()+p.slice(1)} Plan</strong>.{canUpgradeFree&&<span style={{color:'var(--y)',marginLeft:8}}>⚡ Admin — instant plan switching enabled</span>}</div>
     <div className="grid3">
-      {plans.map(pl=><div key={pl.id} className="card" style={{border:`2px solid ${p===pl.id?'var(--p)':'var(--border)'}`,background:p===pl.id?'var(--p3)':'var(--bg2)',position:'relative'}}>
-        {p===pl.id&&<div style={{position:'absolute',top:-10,right:16,background:'linear-gradient(135deg,var(--p),var(--p2))',color:'#fff',fontSize:10,fontWeight:800,padding:'3px 10px',borderRadius:99}}>CURRENT</div>}
-        <div style={{fontSize:12,color:'var(--text3)',fontWeight:700,textTransform:'uppercase',letterSpacing:'.5px',marginBottom:8}}>{pl.name}</div>
-        <div style={{fontSize:28,fontWeight:900,marginBottom:4}}>€{pl.price}<span style={{fontSize:14,fontWeight:400,color:'var(--text2)'}}>/mo</span></div>
-        <div style={{borderTop:'1px solid var(--border)',marginTop:12,paddingTop:12}}>
-          {pl.features.map(f=><div key={f} style={{fontSize:12,color:'var(--text)',marginBottom:6,display:'flex',alignItems:'center',gap:6}}><span style={{color:'var(--g)'}}>✓</span>{f}</div>)}
-          {pl.locked.map(f=><div key={f} style={{fontSize:12,color:'var(--text3)',marginBottom:6,display:'flex',alignItems:'center',gap:6}}><span>🔒</span>{f}</div>)}
-        </div>
-        <button className="btn btn-ghost" style={{width:'100%',marginTop:14,borderColor:p===pl.id?'var(--border)':'var(--p)',color:p===pl.id?'var(--text3)':'var(--p2)'}} onClick={()=>upgrade(pl.id)} disabled={p===pl.id}>{p===pl.id?'Current Plan':pl.price>({free:0,pro:30,agency:150}[p]||0)?(canUpgradeFree?'Switch to '+pl.name:'Upgrade — €'+pl.price+'/mo'):'Downgrade'}</button>
-      </div>)}
+      {plans.map(pl=>{
+        const isCurrent=p===pl.id;
+        const isUpgrade=pl.price>({free:0,pro:30,agency:150}[p]||0);
+        return<div key={pl.id} className="card" style={{border:`2px solid ${isCurrent?pl.color:'var(--border)'}`,background:isCurrent?`rgba(108,92,231,.06)`:'var(--bg2)',position:'relative',transition:'border-color .15s'}}
+          onMouseOver={e=>{if(!isCurrent)e.currentTarget.style.borderColor=pl.color;}}
+          onMouseOut={e=>{if(!isCurrent)e.currentTarget.style.borderColor='var(--border)';}}>
+          {/* Badges */}
+          {isCurrent&&<div style={{position:'absolute',top:-11,right:16,background:'linear-gradient(135deg,var(--p),var(--p2))',color:'#fff',fontSize:10,fontWeight:800,padding:'3px 12px',borderRadius:99}}>✓ CURRENT</div>}
+          {pl.badge&&!isCurrent&&<div style={{position:'absolute',top:-11,left:16,background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#000',fontSize:10,fontWeight:800,padding:'3px 12px',borderRadius:99}}>{pl.badge}</div>}
+          {/* Header */}
+          <div style={{marginBottom:12}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+              <span style={{fontSize:13,color:pl.color,fontWeight:800,textTransform:'uppercase',letterSpacing:'.6px'}}>{pl.name}</span>
+            </div>
+            <div style={{fontSize:30,fontWeight:900,lineHeight:1}}>€{pl.price}<span style={{fontSize:14,fontWeight:400,color:'var(--text2)'}}>/mo</span></div>
+            <div style={{fontSize:12,color:'var(--text3)',marginTop:6,fontStyle:'italic'}}>{pl.tagline}</div>
+          </div>
+          {/* Features */}
+          <div style={{borderTop:'1px solid var(--border)',paddingTop:12,marginBottom:12}}>
+            {pl.features.map((f,i)=><div key={i} style={{fontSize:12,color:'var(--text)',marginBottom:8,display:'flex',alignItems:'flex-start',gap:8,lineHeight:1.5}}>
+              <span style={{flexShrink:0,marginTop:1}}>{f.icon}</span>
+              <span>{f.text}</span>
+            </div>)}
+            {pl.locked.length>0&&<div style={{borderTop:'1px solid var(--border)',paddingTop:10,marginTop:6}}>
+              {pl.locked.map((f,i)=><div key={i} style={{fontSize:12,color:'var(--text3)',marginBottom:7,display:'flex',alignItems:'flex-start',gap:8,lineHeight:1.5}}>
+                <span style={{flexShrink:0,marginTop:1}}>{f.icon}</span>
+                <span>{f.text}</span>
+              </div>)}
+            </div>}
+          </div>
+          {/* Agency special callout */}
+          {pl.id==='agency'&&!isCurrent&&<div style={{background:'rgba(9,132,227,.08)',border:'1px solid rgba(9,132,227,.2)',borderRadius:9,padding:'10px 12px',marginBottom:12,fontSize:12,color:'var(--b)',lineHeight:1.6}}>
+            💡 <strong>Example:</strong> A client opens your portal and sees your studio logo, your brand colors, and your company name — they have no idea "Shadow Portal" exists. You look like a professional agency with your own custom tool.
+          </div>}
+          <button className="btn" style={{width:'100%',padding:11,fontSize:13,background:isCurrent?'transparent':isUpgrade?`linear-gradient(135deg,${pl.color},${pl.color}aa)`:'var(--bg3)',border:isCurrent?'1px solid var(--border)':'none',color:isCurrent?'var(--text3)':isUpgrade?'#fff':'var(--text2)',fontWeight:700,borderRadius:9}} onClick={()=>upgrade(pl.id)} disabled={isCurrent}>
+            {isCurrent?'✓ Current Plan':isUpgrade?(canUpgradeFree?'Switch to '+pl.name:('Upgrade — €'+pl.price+'/mo')):'Downgrade to '+pl.name}
+          </button>
+        </div>;
+      })}
     </div>
   </div>;
 }
@@ -2379,10 +3118,10 @@ function UsersTab({users,onlineUsers,refreshUser}){
     const _d=(offset)=>{const d=new Date();d.setDate(d.getDate()-offset);return d.toISOString();};
     const allUsers=await DB.getShared('users')||{};
     const demos=[
-      {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'demo123',totalEarned:8750,totalSpent:1200,joinedAt:_d(85),isAdmin:false,isSuperAdmin:false,payments:[{id:'dp1',client:'AutoBrand AG',amount:3200,desc:'Logo redesign',status:'paid',date:_d(60)},{id:'dp2',client:'BerlinTech',amount:2800,desc:'App UI kit',status:'paid',date:_d(30)},{id:'dp3',client:'MediaHouse',amount:2750,desc:'Brand guidelines',status:'paid',date:_d(10)},{id:'dp4',client:'StartupHub',amount:1500,desc:'Social assets',status:'pending',date:_d(2)}],projects:[{id:'lp1',name:'AutoBrand Rebrand',client:'AutoBrand AG',due:_d(-5),status:'done',progress:100,createdAt:_d(90)},{id:'lp2',name:'BerlinTech App UI',client:'BerlinTech',due:_d(10),status:'active',progress:65,createdAt:_d(35)}],clients:[],files:[],withdrawals:[{id:'lw1',amount:1200,fee:34.8,net:1165.2,method:'PayPal',dest:'lena@kraftdesign.de',eta:'Instant',date:_d(40),status:'sent'}]},
-      {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'demo123',totalEarned:1400,totalSpent:0,joinedAt:_d(30),isAdmin:false,isSuperAdmin:false,payments:[{id:'mp1',client:'PizzaChain',amount:900,desc:'Menu design',status:'paid',date:_d(20)},{id:'mp2',client:'LocalGym',amount:500,desc:'Logo + card',status:'paid',date:_d(8)}],projects:[{id:'mp1',name:'PizzaChain Menu',client:'PizzaChain',due:_d(5),status:'review',progress:80,createdAt:_d(32)}],clients:[],files:[],withdrawals:[]},
-      {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'demo123',totalEarned:32600,totalSpent:9800,joinedAt:_d(200),isAdmin:false,isSuperAdmin:false,payments:[{id:'sp1',client:'TechUnicorn',amount:12000,desc:'Full brand identity',status:'paid',date:_d(150)},{id:'sp2',client:'FashionHouse',amount:8500,desc:'Campaign visuals',status:'paid',date:_d(90)},{id:'sp3',client:'EcoStart',amount:6200,desc:'Packaging design',status:'paid',date:_d(45)},{id:'sp4',client:'LuxuryWatch',amount:5900,desc:'Brand guidelines v2',status:'paid',date:_d(15)}],projects:[{id:'sp1',name:'TechUnicorn Brand',client:'TechUnicorn',due:_d(-100),status:'done',progress:100,createdAt:_d(210)},{id:'sp2',name:'FashionHouse Campaign',client:'FashionHouse',due:_d(20),status:'active',progress:45,createdAt:_d(50)}],clients:[],files:[],withdrawals:[{id:'sw1',amount:5000,fee:145,net:4855,method:'Bank (SEPA)',dest:'sofia@brandwaves.io',eta:'1–3 days',date:_d(120),status:'sent'},{id:'sw2',amount:3000,fee:87,net:2913,method:'Wise',dest:'sofia@wise.com',eta:'Same day',date:_d(60),status:'sent'}]},
-      {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'demo123',totalEarned:5200,totalSpent:800,joinedAt:_d(55),isAdmin:false,isSuperAdmin:false,payments:[{id:'jp1',client:'NaijaBank',amount:2800,desc:'Mobile app redesign',status:'paid',date:_d(40)},{id:'jp2',client:'FoodDelivery Co',amount:2400,desc:'Brand & app UI',status:'paid',date:_d(15)}],projects:[{id:'jp1',name:'NaijaBank App',client:'NaijaBank',due:_d(-10),status:'done',progress:100,createdAt:_d(60)},{id:'jp2',name:'FoodDelivery Brand',client:'FoodDelivery Co',due:_d(25),status:'active',progress:55,createdAt:_d(20)}],clients:[],files:[],withdrawals:[{id:'jw1',amount:800,fee:0,net:800,method:'Bank (SEPA)',dest:'james@pixelforge.ng',eta:'1–3 days',date:_d(30),status:'sent'}]},
+      {email:'lena.kraft@designstudio.de',name:'Lena Kraft',studio:'Kraft Design GmbH',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',totalEarned:8750,totalSpent:1200,joinedAt:_d(85),isAdmin:false,isSuperAdmin:false,payments:[{id:'dp1',client:'AutoBrand AG',amount:3200,desc:'Logo redesign',status:'paid',date:_d(60)},{id:'dp2',client:'BerlinTech',amount:2800,desc:'App UI kit',status:'paid',date:_d(30)},{id:'dp3',client:'MediaHouse',amount:2750,desc:'Brand guidelines',status:'paid',date:_d(10)},{id:'dp4',client:'StartupHub',amount:1500,desc:'Social assets',status:'pending',date:_d(2)}],projects:[{id:'lp1',name:'AutoBrand Rebrand',client:'AutoBrand AG',due:_d(-5),status:'done',progress:100,createdAt:_d(90)},{id:'lp2',name:'BerlinTech App UI',client:'BerlinTech',due:_d(10),status:'active',progress:65,createdAt:_d(35)}],clients:[],files:[],withdrawals:[{id:'lw1',amount:1200,fee:34.8,net:1165.2,method:'PayPal',dest:'lena@kraftdesign.de',eta:'Instant',date:_d(40),status:'sent'}]},
+      {email:'marco.rossi@visualab.it',name:'Marco Rossi',studio:'VisualAb Studio',plan:'free',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',totalEarned:1400,totalSpent:0,joinedAt:_d(30),isAdmin:false,isSuperAdmin:false,payments:[{id:'mp1',client:'PizzaChain',amount:900,desc:'Menu design',status:'paid',date:_d(20)},{id:'mp2',client:'LocalGym',amount:500,desc:'Logo + card',status:'paid',date:_d(8)}],projects:[{id:'mp1',name:'PizzaChain Menu',client:'PizzaChain',due:_d(5),status:'review',progress:80,createdAt:_d(32)}],clients:[],files:[],withdrawals:[]},
+      {email:'sofia.park@brandwaves.io',name:'Sofia Park',studio:'BrandWaves',plan:'agency',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',totalEarned:32600,totalSpent:9800,joinedAt:_d(200),isAdmin:false,isSuperAdmin:false,payments:[{id:'sp1',client:'TechUnicorn',amount:12000,desc:'Full brand identity',status:'paid',date:_d(150)},{id:'sp2',client:'FashionHouse',amount:8500,desc:'Campaign visuals',status:'paid',date:_d(90)},{id:'sp3',client:'EcoStart',amount:6200,desc:'Packaging design',status:'paid',date:_d(45)},{id:'sp4',client:'LuxuryWatch',amount:5900,desc:'Brand guidelines v2',status:'paid',date:_d(15)}],projects:[{id:'sp1',name:'TechUnicorn Brand',client:'TechUnicorn',due:_d(-100),status:'done',progress:100,createdAt:_d(210)},{id:'sp2',name:'FashionHouse Campaign',client:'FashionHouse',due:_d(20),status:'active',progress:45,createdAt:_d(50)}],clients:[],files:[],withdrawals:[{id:'sw1',amount:5000,fee:145,net:4855,method:'Bank (SEPA)',dest:'sofia@brandwaves.io',eta:'1–3 days',date:_d(120),status:'sent'},{id:'sw2',amount:3000,fee:87,net:2913,method:'Wise',dest:'sofia@wise.com',eta:'Same day',date:_d(60),status:'sent'}]},
+      {email:'james.okafor@pixelforge.ng',name:'James Okafor',studio:'PixelForge',plan:'pro',pass:'d3ad9315b7be5dd53b31a273b3b3aba5defe700808305aa16a3062b76658a791',totalEarned:5200,totalSpent:800,joinedAt:_d(55),isAdmin:false,isSuperAdmin:false,payments:[{id:'jp1',client:'NaijaBank',amount:2800,desc:'Mobile app redesign',status:'paid',date:_d(40)},{id:'jp2',client:'FoodDelivery Co',amount:2400,desc:'Brand & app UI',status:'paid',date:_d(15)}],projects:[{id:'jp1',name:'NaijaBank App',client:'NaijaBank',due:_d(-10),status:'done',progress:100,createdAt:_d(60)},{id:'jp2',name:'FoodDelivery Brand',client:'FoodDelivery Co',due:_d(25),status:'active',progress:55,createdAt:_d(20)}],clients:[],files:[],withdrawals:[{id:'jw1',amount:800,fee:0,net:800,method:'Bank (SEPA)',dest:'james@pixelforge.ng',eta:'1–3 days',date:_d(30),status:'sent'}]},
     ];
     let added=0;
     for(const d of demos){allUsers[d.email]=d;added++;}
@@ -2434,6 +3173,44 @@ function UsersTab({users,onlineUsers,refreshUser}){
       <input className="search-input" placeholder="Search by name, email, or studio…" value={search} onChange={e=>setSearch(e.target.value)}/>
     </div>
 
+    {/* Flagged users alert */}
+    {(()=>{
+      const[flags,setFlags]=useState({});
+      useEffect(()=>{(async()=>{const r=await DB.getShared('marketplace:ratings')||{};setFlags(r);})();},[]);
+      const flagged=Object.entries(flags).filter(([,v])=>v.flagged>=1).sort((a,b)=>b[1].flagged-a[1].flagged);
+      if(!flagged.length)return null;
+      return<div style={{background:'rgba(239,68,68,.07)',border:'1px solid rgba(239,68,68,.25)',borderRadius:12,padding:16,marginBottom:20}}>
+        <div style={{fontWeight:700,fontSize:14,color:'var(--r)',marginBottom:12}}>🚩 Flagged Users — Needs Review</div>
+        {flagged.map(([email,data])=>{
+          const u=users[email];
+          return<div key={email} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',background:'rgba(239,68,68,.06)',borderRadius:9,marginBottom:6}}>
+            <div style={{width:34,height:34,borderRadius:'50%',background:'linear-gradient(135deg,#ef4444,#f87171)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:'#fff',flexShrink:0}}>{initials(u?.name||email)}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:700,fontSize:13}}>{u?.name||email}</div>
+              <div style={{fontSize:11,color:'var(--text3)'}}>{email}</div>
+              <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
+                <span style={{background:'rgba(239,68,68,.15)',color:'var(--r)',borderRadius:99,padding:'2px 8px',fontSize:11,fontWeight:700}}>🚩 {data.flagged} report{data.flagged!==1?'s':''}</span>
+                {data.reports?.map((r,i)=><span key={i} style={{background:'var(--bg3)',color:'var(--text3)',borderRadius:7,padding:'2px 8px',fontSize:11}}>{r.reason}</span>)}
+              </div>
+            </div>
+            <div style={{display:'flex',gap:6,flexShrink:0}}>
+              <button className="btn btn-ghost btn-sm" style={{color:'var(--g)',fontSize:11}} onClick={async()=>{
+                const all=await DB.getShared('marketplace:ratings')||{};
+                if(all[email]){all[email].flagged=0;all[email].reports=[];}
+                await DB.setShared('marketplace:ratings',all);setFlags({...all});
+                toast('Flags cleared for '+( u?.name||email),'g');
+              }}>✓ Clear</button>
+              <button className="btn btn-ghost btn-sm" style={{color:'var(--r)',fontSize:11}} onClick={async()=>{
+                if(!confirm('Suspend '+( u?.name||email)+'? They will see a warning on their account.'))return;
+                const allUsers=await DB.getShared('users')||{};
+                if(allUsers[email]){allUsers[email].suspended=true;await DB.setShared('users',allUsers);}
+                toast('⛔ '+( u?.name||email)+' suspended','r');
+              }}>⛔ Suspend</button>
+            </div>
+          </div>;
+        })}
+      </div>;
+    })()}
     <div className="card">
       {list.length===0?<div style={{textAlign:'center',padding:40,color:'var(--text3)'}}>No users found</div>:
       list.map(([email,u])=>{
